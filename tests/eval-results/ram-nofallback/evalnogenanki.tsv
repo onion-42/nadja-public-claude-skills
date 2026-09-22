@@ -1,0 +1,3 @@
+State Bayes' theorem in words.	The posterior probability is proportional to the likelihood of the data times the prior probability of the hypothesis.
+How does the Bayesian classifier assign a class?	It computes the posterior over classes given the features and picks the class with the highest posterior. Entry point: src/model/classifier.py:12.
+What are the three stages of the inference pipeline?	Load features, run the Bayesian classifier, write predictions. Entry point: src/pipeline.py:40.

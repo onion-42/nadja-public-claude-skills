@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Skill working files (runtime, not source)
+.brainstorm/
+_ram_graph.json
+_ram_*.json
+rag_eval_results.csv
+study/
+
+# OS
+.DS_Store
+Thumbs.db

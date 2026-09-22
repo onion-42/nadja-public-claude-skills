@@ -1,0 +1,13 @@
+{
+  "id": "2026-09-22T08-51-58-056462-a-to-b",
+  "from": "a",
+  "to": "b",
+  "created": "2026-09-22T08:51:58Z",
+  "status": "read",
+  "subject": "Handoff: X",
+  "body": "state in refs, start with Y",
+  "refs": [
+    "handoff.md",
+    "plan.md"
+  ]
+}

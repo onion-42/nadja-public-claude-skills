@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eval — mind-map</title>
+<style>
+  :root { --paper:#faf6ef; --ink:#2b2622; }
+  @media (prefers-color-scheme: dark){ :root{ --paper:#211d1a; --ink:#efe7db; } }
+  html, body { margin:0; height:100%; background:var(--paper);
+    font-family:-apple-system,"Segoe UI","Inter",system-ui,sans-serif; }
+  svg.markmap { width:100vw; height:100vh; display:block; }
+  .markmap-node text { fill:var(--ink); font-weight:500; }
+  .markmap-link { stroke-opacity:.55; }
+</style>
+</head><body>
+<div class="markmap" style="width:100vw;height:100vh">
+<script type="text/template">
+---
+markmap:
+  colorFreezeLevel: 2
+  initialExpandLevel: 3
+  maxWidth: 320
+  color: ["#b0603f", "#5a7d6f", "#c08a2d", "#6b7f9e", "#8c5a6e", "#7a8a5a"]
+---
+
+# Eval
+
+  - Bayes' theorem  _Concepts_
+    - Bayesian classifier
+      - Inference pipeline
+
+</script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.18"></script>
+</body></html>

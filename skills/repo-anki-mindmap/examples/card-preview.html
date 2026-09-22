@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anki card preview — Warm study / paper</title>
+<style>
+  /* Mirror of ANKI_CSS in build.py — standalone preview of the baked card face.
+     Two panes (front / answered) so the design is visible without importing Anki. */
+  body { margin:0; background:#e9e2d5; display:flex; flex-wrap:wrap; gap:24px;
+    padding:24px; font-family:-apple-system,"Segoe UI","Inter",system-ui,sans-serif; }
+  .frame { background:#faf6ef; border-radius:14px; box-shadow:0 8px 28px rgba(80,60,40,.14);
+    width:min(420px,92vw); overflow:hidden; }
+  .frame.dark { background:#211d1a; box-shadow:0 8px 28px rgba(0,0,0,.5); }
+  .card {
+    --paper:#faf6ef; --ink:#2b2622; --ink-soft:#6b6259; --accent:#b0603f;
+    --code-bg:#f0e9dd; --border:#e5dccb;
+    font-size:22px; line-height:1.6; color:var(--ink); background:var(--paper);
+    text-align:left; padding:28px 22px; }
+  .frame.dark .card {
+    --paper:#211d1a; --ink:#efe7db; --ink-soft:#b6ab9c; --accent:#e08a63;
+    --code-bg:#2f2823; --border:#3d352d; }
+  .q { font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    font-size:1.28em; font-weight:600; line-height:1.35; margin:0 0 4px; }
+  hr#answer { border:0; height:1px; background:var(--accent); opacity:.5; margin:20px 0; }
+  .a { font-size:1em; }
+  .anchor { display:inline-block; margin-top:14px;
+    font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+    font-size:.82em; background:var(--code-bg); color:var(--accent);
+    padding:2px 7px; border-radius:6px; border:1px solid var(--border); white-space:nowrap; }
+  .tag { font:600 12px/1 system-ui; letter-spacing:.08em; text-transform:uppercase;
+    color:#8a7d6b; padding:12px 22px 0; }
+</style>
+</head><body>
+  <div class="frame">
+    <div class="tag">Light</div>
+    <div class="card">
+      <div class="q">How does the Bayesian classifier assign a class?</div>
+      <hr id="answer">
+      <div class="a">It computes the posterior over classes given the features and
+      picks the class with the highest posterior.<br>
+      <span class="anchor">src/model/classifier.py:12</span></div>
+    </div>
+  </div>
+  <div class="frame dark">
+    <div class="tag" style="color:#b6ab9c">Dark</div>
+    <div class="card">
+      <div class="q">How does the Bayesian classifier assign a class?</div>
+      <hr id="answer">
+      <div class="a">It computes the posterior over classes given the features and
+      picks the class with the highest posterior.<br>
+      <span class="anchor">src/model/classifier.py:12</span></div>
+    </div>
+  </div>
+</body></html>

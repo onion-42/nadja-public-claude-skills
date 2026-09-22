@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Skills</title>
+<meta name="description" content="A curated bundle of team-usable Claude Code skills and agents for spending tokens well.">
+<style>
+  :root{
+    --paper:#faf6ef; --surface:#fffdf8; --ink:#2b2622; --ink-soft:#6b6259;
+    --accent:#b0603f; --accent-2:#5a7d6f; --code-bg:#f2ebde; --code-ink:#8a4a30;
+    --border:#e7decb; --shadow:0 6px 22px rgba(90,66,42,.10); --shadow-lift:0 14px 34px rgba(90,66,42,.16);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,"Segoe UI",Inter,system-ui,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#201c19; --surface:#2a2521; --ink:#efe7db; --ink-soft:#b6ab9c;
+      --accent:#e08a63; --accent-2:#84a996; --code-bg:#2f2823; --code-ink:#e6a682;
+      --border:#3b332b; --shadow:0 6px 22px rgba(0,0,0,.4); --shadow-lift:0 14px 34px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#201c19; --surface:#2a2521; --ink:#efe7db; --ink-soft:#b6ab9c;
+    --accent:#e08a63; --accent-2:#84a996; --code-bg:#2f2823; --code-ink:#e6a682;
+    --border:#3b332b; --shadow:0 6px 22px rgba(0,0,0,.4); --shadow-lift:0 14px 34px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 12% -8%, rgba(176,96,63,.06), transparent 42%);
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:0 16px 80px}
+  header{padding:56px 0 8px; display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; justify-content:space-between}
+  h1{font-family:var(--serif); font-size:clamp(2.1rem,5vw,3rem); font-weight:600; line-height:1.05; margin:0; letter-spacing:-.01em}
+  h1 .dot{color:var(--accent)}
+  .lede{color:var(--ink-soft); max-width:52ch; margin:14px 0 0; font-size:1.05rem}
+  .theme{border:1px solid var(--border); background:var(--surface); color:var(--ink-soft);
+    border-radius:999px; padding:8px 14px; font:inherit; font-size:.85rem; cursor:pointer; box-shadow:var(--shadow)}
+  .theme:hover{color:var(--ink)}
+  .controls{position:sticky; top:0; z-index:5; padding:22px 0 16px; margin-top:22px;
+    background:linear-gradient(var(--paper) 72%, transparent);}
+  .search{width:100%; max-width:420px; border:1px solid var(--border); background:var(--surface);
+    color:var(--ink); border-radius:12px; padding:12px 16px; font:inherit; box-shadow:var(--shadow)}
+  .search::placeholder{color:var(--ink-soft)}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
+  .chip{border:1px solid var(--border); background:var(--surface); color:var(--ink-soft);
+    border-radius:999px; padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer; transition:.15s}
+  .chip:hover{color:var(--ink); border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .count{color:var(--ink-soft); font-size:.85rem; margin:18px 2px 0}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; margin-top:10px}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:20px 20px 16px; box-shadow:var(--shadow); transition:transform .16s, box-shadow .16s;
+    display:flex; flex-direction:column; gap:10px}
+  .card:hover{transform:translateY(-3px); box-shadow:var(--shadow-lift)}
+  .card .tag{align-self:flex-start; font-size:.68rem; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--accent-2); border:1px solid var(--border);
+    border-radius:999px; padding:3px 9px}
+  .card.kind-agent .tag{color:var(--accent)}
+  .card h3{font-family:var(--serif); font-size:1.24rem; font-weight:600; margin:2px 0 0}
+  .card h3 .k{font:600 .62rem/1 var(--sans); text-transform:uppercase; letter-spacing:.08em;
+    color:var(--ink-soft); vertical-align:middle; margin-left:8px; border:1px solid var(--border);
+    border-radius:5px; padding:2px 6px}
+  .card p{margin:0; color:var(--ink); font-size:.96rem; flex:1}
+  .snippet{display:flex; align-items:center; gap:8px; background:var(--code-bg); border:1px solid var(--border);
+    border-radius:10px; padding:8px 10px; margin-top:4px}
+  .snippet code{font-family:var(--mono); font-size:.78rem; color:var(--code-ink); overflow-x:auto; white-space:nowrap; flex:1}
+  .copy{border:1px solid var(--border); background:var(--surface); color:var(--ink-soft); border-radius:8px;
+    padding:5px 9px; font:inherit; font-size:.74rem; cursor:pointer; white-space:nowrap}
+  .copy:hover{color:var(--ink); border-color:var(--accent)}
+  .copy.ok{color:#fff; background:var(--accent-2); border-color:var(--accent-2)}
+  .s3{margin-top:6px}
+  .s3 label{display:block; font-size:.78rem; color:var(--ink-soft); margin-bottom:5px}
+  .s3 input{width:100%; border:1px solid var(--border); background:var(--surface); color:var(--ink);
+    border-radius:9px; padding:8px 10px; font-family:var(--mono); font-size:.78rem}
+  footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:.86rem}
+  .empty{color:var(--ink-soft); padding:40px 4px}
+  @media (max-width:560px){ header{padding-top:40px} .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Team Skills<span class="dot">.</span></h1>
+      <p class="lede">A curated bundle of Claude Code skills and agents for one goal:
+        spend tokens well — finish tasks without spawning new ones.</p>
+    </div>
+    <button class="theme" id="theme" aria-label="Toggle theme">Theme: Auto</button>
+  </header>
+
+  <div class="controls">
+    <input class="search" id="search" type="search" placeholder="Search skills…" aria-label="Search">
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>Nothing matches that filter.</div>
+
+  <footer>
+    Copy a card's command to install that skill into <code>~/.claude/skills/</code> or
+    <code>~/.claude/agents/</code>. Two skills need one setting of your own —
+    <strong>agent-bus</strong> (your S3 bucket) and <strong>rag-eval</strong> (an approved judge model).
+  </footer>
+</div>
+
+<script>
+const SKILLS = [
+  // Context & Planning
+  {n:"handoff",c:"Context & Planning",k:"skill",d:"Package live task state into one resumable doc before a session or /compact boundary — GOAL, done, pending, the one next step."},
+  {n:"strategic-compact",c:"Context & Planning",k:"skill",d:"Decide WHEN to compact context at logical intervals, and hand off cleanly when you do."},
+  {n:"plan-compose",c:"Context & Planning",k:"skill",d:"Durable, structured plan files — full and lite templates for on-disk planning that survives compaction."},
+  {n:"plan-reflect",c:"Context & Planning",k:"skill",d:"Extract post-task learnings after a task, before archiving the plan."},
+  {n:"plan-archive",c:"Context & Planning",k:"skill",d:"Archive a finished plan: move files, update status, write an index entry."},
+  // Thinking & Prompting
+  {n:"step-back",c:"Thinking & Prompting",k:"skill",d:"Anti-thrash valve: structured diagnosis when the same approach fails twice in a row."},
+  {n:"KISS",c:"Thinking & Prompting",k:"skill",d:"Read-only simplifier — finds one insight that deletes many components, emitted as a ready-to-run prompt."},
+  {n:"roasting",c:"Thinking & Prompting",k:"skill",d:"Roast a prompt or plan before work starts: surface every gray area and unstated assumption."},
+  {n:"brainstorm",c:"Thinking & Prompting",k:"skill",d:"Dialectical debate — three opposing personas — that REMEMBERS the discussion across turns via a debate log."},
+  {n:"prompt-engineering",c:"Thinking & Prompting",k:"skill",d:"Turn a rough request into a strong, ready-to-paste prompt using Anthropic's best practices."},
+  {n:"coding-agent-prompting",c:"Thinking & Prompting",k:"skill",d:"How to prompt reasoning models and coding agents — reasoning-summary over step-by-step, hunt contradictions."},
+  {n:"systematic-debugging",c:"Thinking & Prompting",k:"skill",d:"Four-phase framework: investigate the root cause before attempting any fix."},
+  {n:"root-cause-tracing",c:"Thinking & Prompting",k:"skill",d:"Trace a bug backward through the call stack to its original trigger."},
+  // Orchestration
+  {n:"agent-bus",c:"Orchestration",k:"skill",s3:true,d:"File-based group chat + claims registry + optional S3 bridge for cross-machine agents. File-first handoffs, no short pings."},
+  {n:"dispatching-parallel-agents",c:"Orchestration",k:"skill",d:"Fan out multiple agents to investigate and fix independent problems concurrently."},
+  {n:"model-route",c:"Orchestration",k:"skill",d:"Route each subagent's model tier and effort by how pre-specifiable the task is — not by its label."},
+  // Skill Infra & Eval
+  {n:"skill-creator",c:"Skill Infra & Eval",k:"skill",d:"Create, edit and measure skills — the authoring workflow behind this whole bundle."},
+  {n:"testing-skills-with-subagents",c:"Skill Infra & Eval",k:"skill",d:"RED-GREEN-REFACTOR for skills: baseline without the skill, write to close failures, iterate until bulletproof."},
+  {n:"eval-harness",c:"Skill Infra & Eval",k:"skill",d:"Formal evaluation framework for sessions — eval-driven development."},
+  {n:"writing-skills",c:"Skill Infra & Eval",k:"skill",d:"TDD for process docs: test with subagents before writing, iterate until it holds."},
+  {n:"rag-eval",c:"Skill Infra & Eval",k:"skill",judge:true,d:"Evaluate a RAG system with Ragas — answer faithfulness plus retrieval quality, with a judge model you choose."},
+  // Research
+  {n:"deep-research",c:"Research",k:"skill",d:"Multi-source deep research that synthesizes findings into cited, source-attributed reports."},
+  {n:"research-cite",c:"Research",k:"skill",d:"Persist and citation-audit a completed research run into a saved, cited Markdown report."},
+  {n:"find-docs",c:"Research",k:"skill",d:"Fetch up-to-date documentation, API references and examples for any developer technology."},
+  // Study Artifacts
+  {n:"repo-anki-mindmap",c:"Study Artifacts",k:"skill",d:"Turn a repo into an Anki deck (.apkg) AND an interactive mind-map from one shared concept graph."},
+  // Agents
+  {n:"test-runner",c:"Agents",k:"agent",d:"Runs the smallest relevant tests and reports ONLY failures + a one-line fix hypothesis. Token-frugal."},
+  {n:"code-reviewer",c:"Agents",k:"agent",d:"Quality, security and maintainability review right after code is written or changed."},
+  {n:"security-reviewer",c:"Agents",k:"agent",d:"OWASP-focused vulnerability detection for auth, input, API and sensitive-data code."},
+  {n:"external-researcher",c:"Agents",k:"agent",d:"Multi-hop external research with evidence synthesis for complex investigations."},
+];
+
+const CATS = ["All","Context & Planning","Thinking & Prompting","Orchestration","Skill Infra & Eval","Research","Study Artifacts","Agents"];
+let activeCat = "All", query = "";
+
+const grid = document.getElementById('grid');
+const chipsEl = document.getElementById('chips');
+const countEl = document.getElementById('count');
+const emptyEl = document.getElementById('empty');
+
+function install(s){
+  return s.k === 'agent' ? `cp agents/${s.n}.md ~/.claude/agents/`
+                         : `cp -r skills/${s.n} ~/.claude/skills/`;
+}
+function esc(t){ return t.replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])); }
+
+function cardHTML(s){
+  const s3 = s.s3 ? `<div class="s3"><label for="s3in">Your S3 bucket (org-owned) — updates the export below</label>
+      <input id="s3in" type="text" placeholder="s3://your-bucket/your-prefix/agent-bus/" spellcheck="false"></div>
+      <div class="snippet"><code id="s3out">export AGENT_BUS_S3="s3://your-bucket/your-prefix/agent-bus/"</code>
+      <button class="copy" data-copy="#s3out">Copy</button></div>` : '';
+  const judge = s.judge ? `<div class="snippet"><code>export RAG_EVAL_PROVIDER=openai|azure|anthropic</code>
+      <button class="copy" data-copy-text="export RAG_EVAL_PROVIDER=">Copy</button></div>` : '';
+  return `<article class="card kind-${s.k}" data-cat="${esc(s.c)}" data-name="${esc(s.n)}" data-desc="${esc(s.d.toLowerCase())}">
+    <span class="tag">${esc(s.c)}</span>
+    <h3>${esc(s.n)}<span class="k">${s.k}</span></h3>
+    <p>${esc(s.d)}</p>
+    <div class="snippet"><code>${esc(install(s))}</code><button class="copy" data-copy-text="${esc(install(s))}">Copy</button></div>
+    ${s3}${judge}
+  </article>`;
+}
+
+function render(){
+  const items = SKILLS.filter(s =>
+    (activeCat==="All" || s.c===activeCat) &&
+    (!query || s.n.toLowerCase().includes(query) || s.d.toLowerCase().includes(query)));
+  grid.innerHTML = items.map(cardHTML).join('');
+  emptyEl.hidden = items.length>0;
+  countEl.textContent = `${items.length} of ${SKILLS.length} — ${SKILLS.filter(s=>s.k==='skill').length} skills, ${SKILLS.filter(s=>s.k==='agent').length} agents`;
+  wireCopy(); wireS3();
+}
+
+function wireCopy(){
+  grid.querySelectorAll('.copy').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const text = b.dataset.copyText ?? grid.querySelector(b.dataset.copy)?.textContent ?? '';
+      try{ await navigator.clipboard.writeText(text); }catch(e){}
+      const old=b.textContent; b.textContent='Copied ✓'; b.classList.add('ok');
+      setTimeout(()=>{ b.textContent=old; b.classList.remove('ok'); }, 1400);
+    });
+  });
+}
+function wireS3(){
+  const inp=grid.querySelector('#s3in'), out=grid.querySelector('#s3out');
+  if(!inp||!out) return;
+  inp.addEventListener('input',()=>{
+    const v=inp.value.trim()||'s3://your-bucket/your-prefix/agent-bus/';
+    out.textContent=`export AGENT_BUS_S3="${v}"`;
+  });
+}
+
+CATS.forEach(c=>{
+  const b=document.createElement('button');
+  b.className='chip'; b.textContent=c; b.setAttribute('aria-pressed', String(c===activeCat));
+  b.addEventListener('click',()=>{ activeCat=c; chipsEl.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', String(x.textContent===c))); render(); });
+  chipsEl.appendChild(b);
+});
+document.getElementById('search').addEventListener('input', e=>{ query=e.target.value.trim().toLowerCase(); render(); });
+
+// theme toggle: auto -> light -> dark -> auto
+const root=document.documentElement, tbtn=document.getElementById('theme');
+const order={auto:'light',light:'dark',dark:'auto'}, label={auto:'Auto',light:'Light',dark:'Dark'};
+try{ const saved=localStorage.getItem('ts-theme'); if(saved){ root.dataset.theme=saved; } }catch(e){}
+tbtn.textContent='Theme: '+label[root.dataset.theme||'auto'];
+tbtn.addEventListener('click',()=>{
+  const next=order[root.dataset.theme||'auto']; root.dataset.theme=next;
+  tbtn.textContent='Theme: '+label[next];
+  try{ localStorage.setItem('ts-theme',next); }catch(e){}
+});
+
+render();
+</script>
+</body>
+</html>
