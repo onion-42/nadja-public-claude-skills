@@ -18,6 +18,8 @@ a filterable view. In short:
 - `strategic-compact` — decide *when* to compact, and hand off cleanly when you do
 - `deep-research` — multi-agent research with citation-traceable output
 - `plan-compose` / `plan-reflect` / `plan-archive` — durable, on-disk planning
+- `repo-tidy` — surface dead/misplaced files as a reviewable report (proposes, never deletes)
+- `time-estimate` — T-shirt sizing to hour ranges with an early drift flag
 
 **Thinking & prompting**
 - `step-back`, `KISS`, `roasting`, `prompt-engineering`, `coding-agent-prompting`
