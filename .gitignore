@@ -11,6 +11,13 @@ _ram_*.json
 rag_eval_results.csv
 study/
 
+# Eval scratch — keep only the written reports (SUMMARY.md, *-eval.md)
+tests/eval-results/bus/
+tests/eval-results/ram/
+tests/eval-results/ram-nofallback/
+tests/eval-results/bad.json
+tests/eval-results/records_nogt.json
+
 # OS
 .DS_Store
 Thumbs.db
