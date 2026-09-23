@@ -248,6 +248,8 @@ def _group_colors(nodes: list[dict]) -> dict[str, str]:
 # markmap-view) loads from the jsdelivr CDN at VIEW time: no npm at build (corp TLS
 # proxies choke on runtime `npx`), and holding the Markmap instance enables the toolbar.
 MAP_TEMPLATE = Path(__file__).resolve().parent / "map_template.html"
+# Optional sibling skill: when installed next to this one, its reading-comfort panel is inlined.
+EASY_READ_JS = Path(__file__).resolve().parent.parent / "easy-read" / "easy-read.js"
 
 
 def _frontmatter() -> str:
@@ -282,7 +284,9 @@ def write_mindmap(nodes: list[dict], title: str, out: Path, source: str = "") ->
 
     subs = {"__TITLE__": html.escape(title), "__META__": html.escape(meta), "__LEGEND__": legend,
             "__MD_JSON__": js(md), "__INFO_JSON__": js(info), "__ORDER_JSON__": js(order),
-            "__ROOT_COLOR__": MAP_ROOT_COLOR}
+            "__ROOT_COLOR__": MAP_ROOT_COLOR,
+            "__EASY_READ_JS__": (EASY_READ_JS.read_text(encoding="utf-8").replace("</", "<\\/")
+                                 if EASY_READ_JS.exists() else "")}
     # one pass: a value that contains a placeholder name is never substituted again
     page = re.sub("|".join(subs), lambda m: subs[m.group(0)],
                   MAP_TEMPLATE.read_text(encoding="utf-8"))

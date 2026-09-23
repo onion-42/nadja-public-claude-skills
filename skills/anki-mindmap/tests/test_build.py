@@ -209,3 +209,17 @@ def test_anchor_already_in_back_is_filtered_per_anchor():
 def test_load_graph_rejects_bad_types(tmp_path, bad):
     with pytest.raises(SystemExit):
         build.load_graph(_write(tmp_path, [bad]))
+
+
+# --- easy-read widget ------------------------------------------------------------------
+
+def test_mindmap_inlines_easy_read_widget_when_available(tmp_path):
+    page, _ = _page(tmp_path, NODES)
+    assert "window.__easyRead" in page
+    assert "__EASY_READ_JS__" not in page
+
+
+def test_mindmap_renders_without_easy_read(tmp_path, monkeypatch):
+    monkeypatch.setattr(build, "EASY_READ_JS", tmp_path / "missing.js")
+    page, _ = _page(tmp_path, NODES)
+    assert "window.__easyRead" not in page and "__EASY_READ_JS__" not in page
