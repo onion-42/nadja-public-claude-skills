@@ -85,6 +85,10 @@ def load_graph(path: Path) -> list[dict]:
     for i, n in enumerate(data):
         if not isinstance(n, dict) or "id" not in n or "title" not in n:
             sys.exit(f"ERROR: node {i} missing required 'id'/'title'.")
+        if not isinstance(n["id"], str):
+            sys.exit(f"ERROR: node {i} id must be a string, got {n['id']!r}.")
+        if not isinstance(n.get("depends_on") or [], list):
+            sys.exit(f"ERROR: node {n['id']!r} depends_on must be a list of ids.")
         if n["id"] in seen:
             sys.exit(f"ERROR: duplicate node id {n['id']!r} (ids must be unique per graph).")
         seen.add(n["id"])
@@ -130,9 +134,8 @@ def _card_html(node: dict) -> tuple[str, str]:
     back = node.get("card_back") or node.get("summary", "")
     anchors = node.get("anchors") or []
     chips = []
-    # avoid duplicating an anchor already written into card_back prose
-    if anchors and not any(a in back for a in anchors):
-        chips += [f'<span class="source">{a}</span>' for a in anchors]
+    # skip an anchor already written into card_back prose
+    chips += [f'<span class="source">{html.escape(a)}</span>' for a in anchors if a not in back]
     ev = node.get("evidence")
     if ev:
         chips.append(f'<span class="evidence ev-{ev}">{ev}</span>')
@@ -185,14 +188,24 @@ def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
     return f"wrote {out.name} ({len(deck.notes)} cards)."
 
 
+def _md_escape(text: str) -> str:
+    """Backslash-escape Markdown/HTML syntax so a title renders as literal text (no raw HTML)."""
+    return re.sub(r"([\\`*_\[\]<>#&!|~])", r"\\\1", " ".join(str(text).split()))
+
+
 def _label(node: dict) -> str:
-    """Map label: title plus an inline evidence chip when the node has one."""
+    """Map label: escaped title plus an inline evidence chip when the node has one."""
     ev = node.get("evidence")
-    return f"{node.get('title', node['id'])} `{ev}`" if ev else node.get("title", node["id"])
+    title = _md_escape(node.get("title", node["id"]))
+    return f"{title} `{ev}`" if ev else title
 
 
-def _outline(nodes: list[dict], title: str) -> str:
-    """Nested Markdown from depends_on. Roots = nodes nothing depends on."""
+def _outline(nodes: list[dict], title: str) -> tuple[str, list]:
+    """Nested Markdown from depends_on, plus the node ids in emit (depth-first) order.
+
+    Roots = nodes nothing depends on. The id order matches markmap's tree walk
+    (the root heading first -> None), so the page maps tree nodes to ids by position.
+    """
     by_id = {n["id"]: n for n in nodes}
     children: dict[str, list[str]] = {n["id"]: [] for n in nodes}
     has_parent: set[str] = set()
@@ -203,31 +216,32 @@ def _outline(nodes: list[dict], title: str) -> str:
                 children[dep].append(n["id"])
                 has_parent.add(n["id"])
     roots = [n["id"] for n in nodes if n["id"] not in has_parent]
-    lines = [f"# {title}", ""]
+    lines = [f"# {_md_escape(title)}", ""]
+    order: list = [None]
     seen: set[str] = set()
 
     def emit(nid: str, depth: int) -> None:
         if nid in seen:  # guard against cycles
             return
         seen.add(nid)
+        order.append(nid)
         lines.append(f"{'  ' * (depth + 1)}- {_label(by_id[nid])}")
         for c in children.get(nid, []):
             emit(c, depth + 1)
 
     for r in roots:
         emit(r, 0)
-    return "\n".join(lines) + "\n"
+    if len(seen) < len(nodes):  # a cycle hides its nodes from every root: show them anyway
+        print("WARNING: depends_on has a cycle; those nodes are shown as extra roots.")
+        for n in nodes:
+            emit(n["id"], 0)
+    return "\n".join(lines) + "\n", order
 
 
 def _group_colors(nodes: list[dict]) -> dict[str, str]:
     """group -> branch colour, in first-appearance order (drives map + legend)."""
     groups = list(dict.fromkeys(n.get("group") or "Other" for n in nodes))
     return {g: MAP_BRANCH_COLORS[i % len(MAP_BRANCH_COLORS)] for i, g in enumerate(groups)}
-
-
-def _plain(label: str) -> str:
-    """The visible text markmap renders for a label (backticks dropped)."""
-    return re.sub(r"\s+", " ", label.replace("`", "")).strip()
 
 
 # Mind-map page template (same "Warm study / paper" world). markmap (d3 + markmap-lib +
@@ -248,12 +262,13 @@ def _frontmatter() -> str:
 
 
 def write_mindmap(nodes: list[dict], title: str, out: Path, source: str = "") -> str:
-    md = _frontmatter() + _outline(nodes, title)
+    outline, order = _outline(nodes, title)
+    md = _frontmatter() + outline
     # .md alongside the HTML for offline use at https://markmap.js.org
     md_path = out.with_suffix(".md")  # out is "<base>.mindmap.html" -> "<base>.mindmap.md"
     md_path.write_text(md, encoding="utf-8")
     colors = _group_colors(nodes)
-    info = {_plain(_label(n)): {
+    info = {n["id"]: {
         "title": n.get("title", n["id"]), "group": n.get("group") or "Other",
         "color": colors[n.get("group") or "Other"],
         "summary": n.get("summary") or n.get("card_back", ""),
@@ -265,11 +280,12 @@ def write_mindmap(nodes: list[dict], title: str, out: Path, source: str = "") ->
     def js(obj: object) -> str:
         return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/")
 
-    page = MAP_TEMPLATE.read_text(encoding="utf-8")
-    for key, value in {"__TITLE__": html.escape(title), "__META__": html.escape(meta),
-                       "__LEGEND__": legend, "__MD_JSON__": js(md), "__INFO_JSON__": js(info),
-                       "__ROOT_COLOR__": MAP_ROOT_COLOR}.items():
-        page = page.replace(key, value)
+    subs = {"__TITLE__": html.escape(title), "__META__": html.escape(meta), "__LEGEND__": legend,
+            "__MD_JSON__": js(md), "__INFO_JSON__": js(info), "__ORDER_JSON__": js(order),
+            "__ROOT_COLOR__": MAP_ROOT_COLOR}
+    # one pass: a value that contains a placeholder name is never substituted again
+    page = re.sub("|".join(subs), lambda m: subs[m.group(0)],
+                  MAP_TEMPLATE.read_text(encoding="utf-8"))
     out.write_text(page, encoding="utf-8")
     return (f"wrote {out.name} (interactive mind-map, paper theme; loads markmap from the "
             f"CDN on first open — needs network then). Portable source: {md_path.name} "

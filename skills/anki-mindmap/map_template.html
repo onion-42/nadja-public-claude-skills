@@ -92,7 +92,8 @@
 <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18/dist/browser/index.js"></script>
 <script>
 const MD = __MD_JSON__;
-const INFO = __INFO_JSON__;  // visible label -> {title, group, color, summary, anchors, evidence}
+const INFO = __INFO_JSON__;  // node id -> {title, group, color, summary, anchors, evidence}
+const ORDER = __ORDER_JSON__;  // node id per tree node, depth-first (root = null)
 const ROOT_COLOR = "__ROOT_COLOR__";
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -110,11 +111,15 @@ const ROOT_COLOR = "__ROOT_COLOR__";
   }
   const { Transformer, Markmap, deriveOptions } = window.markmap;
   const { root: data, frontmatter } = new Transformer().transform(MD);
-  const plain = (s) => (s || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-  const opts = deriveOptions((frontmatter && frontmatter.markmap) || {});
-  opts.color = (node) => (INFO[plain(node.content)] || {}).color || ROOT_COLOR;
-  const mm = Markmap.create("svg#mm", opts, data);
   const walk = (n, depth, f) => { f(n, depth); (n.children || []).forEach(c => walk(c, depth + 1, f)); };
+  // Tag each tree node with its graph id by position: build.py emitted the outline in this
+  // same depth-first order, so there is no fragile matching against rendered label text.
+  let i = 0;
+  walk(data, 0, (n) => { n.payload = Object.assign({}, n.payload, { nid: ORDER[i++] }); });
+  const infoOf = (node) => INFO[(node && node.payload && node.payload.nid) || ""];
+  const opts = deriveOptions((frontmatter && frontmatter.markmap) || {});
+  opts.color = (node) => (infoOf(node) || {}).color || ROOT_COLOR;
+  const mm = Markmap.create("svg#mm", opts, data);
   // Mirror markmap's own toggleNode: edit payload.fold on the live tree, then renderData().
   // setData() would re-run _initializeData and re-fold everything past initialExpandLevel.
   const foldFrom = async (level) => {
@@ -151,7 +156,7 @@ const ROOT_COLOR = "__ROOT_COLOR__";
   $("mm").addEventListener("click", (e) => {
     const fo = e.target.closest(".markmap-foreign");
     const g = fo && fo.closest(".markmap-node");
-    const info = g && g.__data__ && INFO[plain(g.__data__.content)];
+    const info = g && infoOf(g.__data__);
     if (info) show(info);
   });
 })();
