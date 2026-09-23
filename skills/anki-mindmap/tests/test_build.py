@@ -77,12 +77,12 @@ def test_build_deck_uses_per_name_deck_id():
 
 def test_load_graph_rejects_unknown_evidence(tmp_path):
     bad = [dict(NODES[0], evidence="vibes")]
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError):
         build.load_graph(_write(tmp_path, bad))
 
 
 def test_load_graph_rejects_duplicate_ids(tmp_path):
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError):
         build.load_graph(_write(tmp_path, [NODES[0], NODES[0]]))
 
 
@@ -207,7 +207,7 @@ def test_anchor_already_in_back_is_filtered_per_anchor():
 @pytest.mark.parametrize("bad", [{"id": 1, "title": "t"},
                                  {"id": "a", "title": "t", "depends_on": "b"}])
 def test_load_graph_rejects_bad_types(tmp_path, bad):
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError):
         build.load_graph(_write(tmp_path, [bad]))
 
 
@@ -223,3 +223,23 @@ def test_mindmap_renders_without_easy_read(tmp_path, monkeypatch):
     monkeypatch.setattr(build, "EASY_READ_JS", tmp_path / "missing.js")
     page, _ = _page(tmp_path, NODES)
     assert "window.__easyRead" not in page and "__EASY_READ_JS__" not in page
+
+
+# --- second review: raise (not exit), full shape, list-like titles ------------------------
+
+@pytest.mark.parametrize("bad", [
+    {"id": "a", "title": "t", "anchors": [{"url": "x"}]},
+    {"id": "a", "title": "t", "group": ["x"]},
+    {"id": "a", "title": "t", "depends_on": [1]},
+    {"id": "a", "title": "   "},
+])
+def test_validate_nodes_raises_value_error_not_system_exit(bad):
+    with pytest.raises(ValueError):
+        build.validate_nodes([bad])
+
+
+@pytest.mark.parametrize("title", ["1. Why hooks", "2) Why hooks", "- dash", "+ plus"])
+def test_list_like_titles_are_escaped(tmp_path, title):
+    _, md = _page(tmp_path, [dict(NODES[0], title=title)])
+    label = md.splitlines()[-1].split("- ", 1)[1]
+    assert label.startswith("\\") or "\." in label or "\)" in label, label

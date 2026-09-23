@@ -75,27 +75,42 @@ def deck_id_for(deck_name: str) -> int:
     return int(hashlib.sha1(deck_name.encode("utf-8")).hexdigest()[:8], 16) % (2**31 - 1) + 1
 
 
+def _is_str_list(value: object) -> bool:
+    return isinstance(value, list) and all(isinstance(v, str) for v in value)
+
+
+def validate_nodes(data: object) -> list[dict]:
+    """Check the whole graph shape; raise ValueError (callers decide whether to exit)."""
+    if not isinstance(data, list):
+        raise ValueError("graph JSON must be a list of nodes (or {'nodes': [...]}).")
+    seen: set[str] = set()
+    for i, n in enumerate(data):
+        if not isinstance(n, dict) or "id" not in n or "title" not in n:
+            raise ValueError(f"node {i} missing required 'id'/'title'.")
+        if not isinstance(n["id"], str) or not n["id"].strip():
+            raise ValueError(f"node {i} id must be a non-empty string, got {n['id']!r}.")
+        if not isinstance(n["title"], str) or not n["title"].strip():
+            raise ValueError(f"node {n['id']!r} title must be a non-empty string.")
+        for key in ("depends_on", "anchors"):
+            if not _is_str_list(n.get(key) or []):
+                raise ValueError(f"node {n['id']!r} {key} must be a list of strings.")
+        for key in ("group", "summary", "card_front", "card_back"):
+            if n.get(key) is not None and not isinstance(n[key], str):
+                raise ValueError(f"node {n['id']!r} {key} must be a string.")
+        if n["id"] in seen:
+            raise ValueError(f"duplicate node id {n['id']!r} (ids must be unique per graph).")
+        seen.add(n["id"])
+        ev = n.get("evidence")
+        if ev is not None and ev not in EVIDENCE:
+            raise ValueError(f"node {n['id']!r} has evidence {ev!r}; use one of {EVIDENCE}.")
+    return data
+
+
 def load_graph(path: Path) -> list[dict]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(data, dict) and "nodes" in data:
         data = data["nodes"]
-    if not isinstance(data, list):
-        sys.exit("ERROR: graph JSON must be a list of nodes (or {'nodes': [...]}).")
-    seen: set[str] = set()
-    for i, n in enumerate(data):
-        if not isinstance(n, dict) or "id" not in n or "title" not in n:
-            sys.exit(f"ERROR: node {i} missing required 'id'/'title'.")
-        if not isinstance(n["id"], str):
-            sys.exit(f"ERROR: node {i} id must be a string, got {n['id']!r}.")
-        if not isinstance(n.get("depends_on") or [], list):
-            sys.exit(f"ERROR: node {n['id']!r} depends_on must be a list of ids.")
-        if n["id"] in seen:
-            sys.exit(f"ERROR: duplicate node id {n['id']!r} (ids must be unique per graph).")
-        seen.add(n["id"])
-        ev = n.get("evidence")
-        if ev is not None and ev not in EVIDENCE:
-            sys.exit(f"ERROR: node {n['id']!r} has evidence {ev!r}; use one of {EVIDENCE}.")
-    return data
+    return validate_nodes(data)
 
 
 def topo_order(nodes: list[dict]) -> list[dict]:
@@ -190,7 +205,9 @@ def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
 
 def _md_escape(text: str) -> str:
     """Backslash-escape Markdown/HTML syntax so a title renders as literal text (no raw HTML)."""
-    return re.sub(r"([\\`*_\[\]<>#&!|~])", r"\\\1", " ".join(str(text).split()))
+    text = re.sub(r"([\\`*_\[\]<>#&!|~])", r"\\\1", " ".join(str(text).split()))
+    # a leading "1." / "2)" / "-" / "+" would start a nested list and shift the tree order
+    return re.sub(r"^(\d+)([.)])|^([-+])", lambda m: f"{m[1]}\\{m[2]}" if m[1] else f"\\{m[3]}", text)
 
 
 def _label(node: dict) -> str:
@@ -308,7 +325,10 @@ def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):  # Windows consoles default to cp1252
         sys.stdout.reconfigure(encoding="utf-8")
 
-    nodes = load_graph(args.graph)
+    try:
+        nodes = load_graph(args.graph)
+    except ValueError as e:
+        sys.exit(f"ERROR: {e}")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     base = args.name or re.sub(r"[^\w]+", "-", args.deck_name).strip("-").lower()
 
