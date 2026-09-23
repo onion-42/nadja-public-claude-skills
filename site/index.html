@@ -159,8 +159,8 @@ const countEl = document.getElementById('count');
 const emptyEl = document.getElementById('empty');
 
 function install(s){
-  return s.k === 'agent' ? `cp agents/${s.n}.md ~/.claude/agents/`
-                         : `cp -r skills/${s.n} ~/.claude/skills/`;
+  return s.k === 'agent' ? `cp plugins/team/agents/${s.n}.md ~/.claude/agents/`
+                         : `cp -r plugins/team/skills/${s.n} ~/.claude/skills/`;
 }
 function esc(t){ return t.replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])); }
 

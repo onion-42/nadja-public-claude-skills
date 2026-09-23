@@ -8,6 +8,12 @@ from a codebase.
 Nothing here is personal. No budgets, no chat bots, no note-taking, no per-person config
 sync. Every skill is written to work for any engineer on a team.
 
+It is a Claude Code **plugin marketplace** with two plugins:
+
+- **`team`** (`plugins/team/`) — the workflow skills and subagents below.
+- **`neurodivergent`** (`plugins/neurodivergent/`) — opt-in comfort tools for ADHD, autistic
+  and dyslexic users (see below). It works best alongside `team`.
+
 ## What's inside
 
 Browse the **card site** at [`site/index.html`](site/index.html) (open it in a browser) for
@@ -36,31 +42,61 @@ a filterable view. In short:
 **Research & docs**
 - `research-cite`, `find-docs`
 
-**New in this bundle**
-- `repo-anki-mindmap` — turn a repo into an Anki deck (.apkg) + an interactive mind-map
+**Study artifacts & reading comfort**
+- `anki-mindmap` — the core renderer: one concept graph → an Anki deck (.apkg) + an
+  interactive mind-map; reached through two wrappers:
+  - `repo-anki-mindmap` — build the graph from a code repository
+  - `research-anki-mindmap` — build the graph from papers, notes or a topic
+- `easy-read` — a reading-comfort panel (fonts, spacing, calm colours) for any HTML page
+
+**Evaluation & debate**
 - `rag-eval` — evaluate a RAG system with Ragas (faithfulness, retrieval quality)
 - `brainstorm` — dialectical debate that **remembers** the discussion across turns
 
-**Subagents** (`agents/`)
+**Subagents** (`plugins/team/agents/`)
 - `test-runner` (failures-only, token-frugal), `code-reviewer`, `security-reviewer`,
   `external-researcher`
 
+## The `neurodivergent` plugin
+
+Tools that make the output do the remembering. They are offered for comfort and choice; none of
+them claims to improve anyone's performance.
+
+- `cho` — "what's going on?": a short status of the current session
+- `goal` — pin a dense prompt as a GOAL block and check for drift
+- `nopanic` — grounding when overwhelmed (CBT/DBT techniques) plus specific, earned praise
+- `when-stuck` — pick a problem-solving technique by the kind of stuck
+- `mini-reflection` — a warm three-line end-of-task reflection, written by Claude
+- `notify` — one Telegram line when a long task is done or Claude is waiting for you
+  (bring your own bot; token from environment variables)
+- commands `/checkpoint`, `/pickup-handoff`, `/mode`
+- output style `nd-friendly` — answer first, literal language, multiple-choice questions,
+  one next action; flags `full`/`short`, `bionic`, `anchor`, `soft`, `literal+` via `/mode`
+
+Already in `team` and useful here too: `handoff`, `roasting`, `step-back`, `time-estimate`,
+`easy-read`. Credits for adapted material: [`plugins/neurodivergent/CREDITS.md`](plugins/neurodivergent/CREDITS.md).
+
 ## Install
 
-Copy the skills and agents into your Claude Code config:
+Unzip the bundle (or clone it) anywhere, then in Claude Code:
 
-```bash
-# per-project
-cp -r skills/*  <your-repo>/.claude/skills/
-cp -r agents/*  <your-repo>/.claude/agents/
-
-# or user-wide
-cp -r skills/*  ~/.claude/skills/
-cp -r agents/*  ~/.claude/agents/
+```
+/plugin marketplace add /path/to/team-claude-skills
+/plugin install team@team-claude-skills
+/plugin install neurodivergent@team-claude-skills   # optional
 ```
 
-Some skills ship a helper script (`agent_bus.py`, `build.py`, `eval_rag.py`) — reference it
-by its installed path. Python skills that need a library say so in their SKILL.md
+To pick the output style after installing `neurodivergent`: `/config` → Output style → `nd-friendly`.
+
+Or copy individual skills without the plugin system:
+
+```bash
+cp -r plugins/team/skills/<name>  ~/.claude/skills/
+cp    plugins/team/agents/<name>.md  ~/.claude/agents/
+```
+
+Some skills ship a helper script (`agent_bus.py`, `build.py`, `eval_rag.py`); it sits in the
+skill's own directory, wherever the skill is installed. Python skills that need a library say so in their SKILL.md
 (`genanki`, `markmap`, `ragas`, `boto3`); install only what you use.
 
 ## Two things you must set yourself
@@ -74,7 +110,21 @@ by its installed path. Python skills that need a library say so in their SKILL.m
 
 ## Testing
 
-The net-new and modified skills (`repo-anki-mindmap`, `rag-eval`, `brainstorm`, `agent-bus`,
-`model-route`, and the `test-runner` agent) are exercised with `testing-skills-with-subagents`;
-see [`tests/eval-results/`](tests/eval-results/). Adopted skills carry their upstream tests
+The net-new and modified skills (`anki-mindmap` and its two wrappers, `rag-eval`, `brainstorm`,
+`agent-bus`, `model-route`, and the `test-runner` agent) are exercised with
+`testing-skills-with-subagents`; see [`tests/eval-results/`](tests/eval-results/). Unit tests:
+`python -m pytest plugins/team/skills -q`. Adopted skills carry their upstream tests
 and are smoke-checked here for valid frontmatter and trigger descriptions.
+
+## See also
+
+Other people's work in the same space (not included here):
+
+- [ravila4/claude-adhd-skills](https://github.com/ravila4/claude-adhd-skills)
+- [jpoindexter/nd-skills](https://github.com/jpoindexter/nd-skills)
+- [hseinmoussa/exo](https://github.com/hseinmoussa/exo) — output style, MIT
+- [assafkip/adhd-output-style](https://github.com/assafkip/adhd-output-style) — output style, MIT
+- [alexgreensh/attention-span](https://github.com/alexgreensh/attention-span) — AGPL
+- [JackReis/neurodivergent-visual-org](https://github.com/JackReis/neurodivergent-visual-org)
+- [thiagoigfraga/active-reading-adhd-audhd](https://github.com/thiagoigfraga/active-reading-adhd-audhd)
+- [text-vide](https://github.com/Gumball12/text-vide) — bionic-reading-style text transform

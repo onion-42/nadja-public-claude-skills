@@ -1,0 +1,22 @@
+{
+  "name": "team-claude-skills",
+  "owner": {
+    "name": "Nadezhda Lukashevich"
+  },
+  "metadata": {
+    "description": "Generic Claude Code skills and agents for engineering and research teams, plus an opt-in plugin of comfort tools for neurodivergent users.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "team",
+      "source": "./plugins/team",
+      "description": "Engineering and research workflow skills (planning, debugging, review, research with citations, Anki decks and mind-maps, easy-read) and four subagents."
+    },
+    {
+      "name": "neurodivergent",
+      "source": "./plugins/neurodivergent",
+      "description": "Comfort tools for ADHD, autistic and dyslexic users: session status, goal pinning, calm-down and unstuck prompts, reflections, done/waiting notifications, and an nd-friendly output style. Works best alongside the team plugin."
+    }
+  ]
+}

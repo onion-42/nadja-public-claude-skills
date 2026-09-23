@@ -40,9 +40,10 @@ One of:
 
 ## Procedure
 
-Scripts are stdlib-only (Python 3.11+); run with `python3`. Let
-`CM=~/.claude/skills/research-cite/scripts/citation_manager.py` and
-`VC=~/.claude/skills/research-cite/scripts/verify_citations.py`.
+Scripts are stdlib-only (Python 3.11+); run with `python3`. They sit in `scripts/` next to
+this SKILL.md (its base directory — `~/.claude/skills/research-cite/` for a copy install, or
+inside the plugin's install directory). Let `CM=<skill dir>/scripts/citation_manager.py` and
+`VC=<skill dir>/scripts/verify_citations.py`.
 
 1. **Init the run.** Slugify the question (lowercase, kebab, ~6 words) → run dir
    `./_cc_research_<slug>/` in the current working directory.
@@ -51,7 +52,7 @@ Scripts are stdlib-only (Python 3.11+); run with `python3`. Let
    ```
 
 2. **Register every source.** For each source from the engine output (and any source
-   surfaced by an Approach-A MCP/code-lookup pass — PubMed, ctx7, Atlassian/Slack, a
+   surfaced by any extra lookup — an MCP server, library docs, internal wikis, a
    folded-in PDF), call `register-source`. Dedup is automatic (DOI-stable `source_id`).
    Set `source_type` (`academic` for PubMed/DOI, `documentation` for ctx7, `code`,
    `news`, `web`…) and fill `authors`/`year` when known.
@@ -61,7 +62,7 @@ Scripts are stdlib-only (Python 3.11+); run with `python3`. Let
 
 3. **Record evidence.** For each concrete data point a finding rests on, add an evidence
    row tied to its `source_id`. **Preserve quantitative evidence and qualifiers verbatim**
-   (p-values, n, effect sizes, CIs, "in mice", "pilot", "n.s.") — see `rules/research-routing.md`.
+   (p-values, n, effect sizes, CIs, "in mice", "pilot", "n.s.") — dropping a qualifier silently changes the claim.
    ```bash
    python3 "$CM" add-evidence --dir ./_cc_research_<slug> --json '{"source_id":"…","quote":"reduced events 15% (HR 0.85, 95% CI 0.79–0.92, n=27564)","evidence_type":"data_point"}'
    ```

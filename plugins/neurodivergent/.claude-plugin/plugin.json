@@ -1,0 +1,17 @@
+{
+  "name": "neurodivergent",
+  "version": "0.1.0",
+  "description": "Comfort tools for ADHD, autistic and dyslexic users: session status, goal pinning, calm-down and unstuck prompts, reflections, done/waiting notifications, and an nd-friendly output style. Works best alongside the team plugin.",
+  "author": {
+    "name": "Nadezhda Lukashevich"
+  },
+  "keywords": [
+    "adhd",
+    "autism",
+    "dyslexia",
+    "neurodivergent",
+    "accessibility",
+    "output-style"
+  ],
+  "outputStyles": "./output-styles/"
+}

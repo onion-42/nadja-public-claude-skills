@@ -1,0 +1,9 @@
+{
+  "name": "team",
+  "version": "0.1.0",
+  "description": "Engineering and research workflow skills (planning, debugging, review, research with citations, Anki decks and mind-maps, easy-read) and four subagents.",
+  "author": {
+    "name": "Nadezhda Lukashevich"
+  },
+  "keywords": ["skills", "agents", "debugging", "research", "anki", "planning"]
+}

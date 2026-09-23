@@ -51,5 +51,5 @@ smooth scrolling.
   `local()` only.
 
 ## Test
-`python -m pytest skills/easy-read/tests -q` (syntax check via `node --check` when Node is present),
+`python -m pytest tests -q` from this skill's directory (syntax check via `node --check` when Node is present),
 then open any page with the widget and try each control in light and dark.

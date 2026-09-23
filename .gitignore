@@ -21,3 +21,4 @@ tests/eval-results/records_nogt.json
 # OS
 .DS_Store
 Thumbs.db
+.pytest_cache/
