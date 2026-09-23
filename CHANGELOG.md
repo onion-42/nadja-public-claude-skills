@@ -2,6 +2,18 @@
 
 All notable changes to this marketplace. Versions follow the plugin manifests.
 
+## Unreleased
+
+### Changed
+- `anki-mindmap`: term cards are the default: the front is the term, the back is one bold `answer`
+  line plus up to 3 short `points`. Nuance moves to `summary` (mind-map). Old `card_back` still works.
+- The demo deck is rewritten as simple term cards.
+
+### Added
+- `anki-mindmap --style nd`: ADHD/dyslexia/autism-friendly cards with OpenDyslexic embedded (SIL OFL,
+  `fonts/`), one sans stack, no italics, wider spacing; `--font-file` embeds an extra font (e.g. one
+  with Cyrillic); `--bionic` bolds word starts in points.
+
 ## 0.1.0 — 2026-09-23
 
 First public release.

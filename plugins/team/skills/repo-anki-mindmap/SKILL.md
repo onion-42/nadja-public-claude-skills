@@ -34,7 +34,10 @@ the learner already knows. No scope → ask one multiple-choice question.
 3. Pin the commit: pass `--source "<repo>@<short-sha>"`, so the anchors stay meaningful.
 4. `evidence` is usually unnecessary for code (the anchor is the evidence). Use `unverified` for a
    claim about behaviour you inferred but did not run or trace.
-5. Write the graph to `_ram_graph.json`.
+5. **Cards teach terms in simple words** (core SKILL.md, "Writing cards"): front = the term
+   (a module, class or idea), `answer` = one plain sentence of what it does, `points` ≤ 3 short
+   facts (where it lives, what calls it). Details go in `summary`.
+6. Write the graph to `_ram_graph.json`.
 
 ## Gate 2 — approve the node list, then render
 
@@ -42,7 +45,7 @@ Show node titles + groups; let the user prune/add. Then render with the core:
 
 ```bash
 python <skills-dir>/anki-mindmap/build.py _ram_graph.json --deck-name "Repo: <name>" \
-  --out-dir ./study --source "<repo>@<sha>"
+  --out-dir ./study --source "<repo>@<sha>"   # add --style nd [--bionic] if asked
 ```
 
 Report the card count, how to import the `.apkg` (Anki, File, Import), and that the map needs the CDN

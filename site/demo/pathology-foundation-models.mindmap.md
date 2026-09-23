@@ -8,19 +8,19 @@ markmap:
 
 # pathology-foundation-models
 
-  - Self-supervised general-purpose features `shown`
-    - Teacher-student self-distillation (DINO loss) `shown`
-      - Masked image modelling (iBOT patch loss) `shown`
-        - In-domain SSL at million-slide scale `shown`
-          - Tile-level embeddings `shown`
-            - Linear probing on tile benchmarks `shown`
-            - Multiple-instance aggregation `shown`
+  - Self-supervised features `shown`
+    - Self-distillation (DINO) `shown`
+      - Masked image modelling (iBOT) `shown`
+        - Virchow `shown`
+          - Tile embedding `shown`
+            - Linear probing `shown`
+            - Multiple-instance learning (MIL) `shown`
               - Pan-cancer detection `shown`
-                - Rare-cancer generalization `shown`
-                - External and out-of-distribution robustness `shown`
-              - Biomarker prediction from H\&E `shown`
-      - KoLeo feature-spreading regularizer `shown`
-      - Natural-image augmentations vs pathology `plausible`
-    - Automatic data curation by retrieval `shown`
-  - Whole-slide images (WSI) `shown`
-    - Foreground tissue tiling `shown`
+                - Rare cancers `shown`
+                - Out-of-distribution robustness `shown`
+              - Biomarker prediction `shown`
+      - KoLeo regularizer `shown`
+      - Augmentation mismatch `plausible`
+    - Data curation by retrieval `shown`
+  - Whole-slide image (WSI) `shown`
+    - Tissue tiling `shown`

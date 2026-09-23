@@ -55,6 +55,8 @@ install commands and a live demo deck: a study deck on self-supervised pathology
   interactive mind-map; reached through two wrappers:
   - `repo-anki-mindmap` — build the graph from a code repository
   - `research-anki-mindmap` — build the graph from papers, notes or a topic
+  - cards teach one term each in simple words; `--style nd` makes ADHD/dyslexia/autism-friendly
+    cards (OpenDyslexic embedded, wide spacing, optional bionic points)
 - `easy-read` — a reading-comfort panel (fonts, spacing, calm colours) for any HTML page
 
 **Evaluation & debate**

@@ -26,7 +26,15 @@ from pathlib import Path
 # and re-imports update the model instead of cloning it.
 MODEL_ID = 1091735104
 MODEL_NAME = "anki-mindmap Warm"
+# The nd style gets its own note type: its CSS carries the embedded fonts.
+MODEL_ID_ND = 1091735105
+MODEL_NAME_ND = "anki-mindmap ND"
 EVIDENCE = ("shown", "plausible", "guess", "unverified")
+MAX_POINTS = 3
+FONTS_DIR = Path(__file__).resolve().parent / "fonts"
+# OpenDyslexic (SIL OFL 1.1, fonts/OFL.txt) is Latin-only: Cyrillic falls through to the
+# next font in the stack, e.g. one passed with --font-file.
+OPENDYSLEXIC = {400: FONTS_DIR / "OpenDyslexic-400.woff2", 700: FONTS_DIR / "OpenDyslexic-700.woff2"}
 
 # --- Shared "Warm study / paper" design system (site + Anki + mind-map) ---
 # Muted branch palette; every colour clears 3:1 against both paper backgrounds
@@ -64,10 +72,49 @@ hr#answer {
 .evidence { color: var(--ink-soft); }
 .evidence.ev-shown { color: #4f8a76; }
 .evidence.ev-guess, .evidence.ev-unverified { font-style: italic; }
+.answer { font-weight: 700; margin: 0 0 10px; }
+.points { margin: 0; padding-left: 1.1em; }
+.points li { margin: 4px 0; }
 .night_mode .card, .card.nightMode {
   --paper: #211d1a; --surface: #2a2521; --ink: #efe7db; --ink-soft: #b6ab9c;
   --accent: #e08a63; --code-bg: #2f2823; --border: #3d352d; }
 """
+
+# nd style: one sans font stack everywhere (no serif question), no italics, wider line,
+# letter and word spacing, shorter measure, calm low-glare colours.
+ND_CSS = """
+.card, .q {
+  font-family: __STACK__;
+  letter-spacing: .03em; word-spacing: .14em; }
+.card { line-height: 1.8; max-width: 36rem; --paper: #f7f1e3; --ink: #2d2a26; }
+.q { font-size: 1.3em; line-height: 1.4; }
+.a code, .source, .evidence { font-style: normal !important; white-space: normal; }
+.points b { font-weight: 700; }
+.night_mode .card, .card.nightMode { --paper: #262320; --ink: #e8e0d2; }
+"""
+
+
+def anki_css(style: str, extra_fonts: list[str]) -> str:
+    """Card CSS for a style. extra_fonts = media file names, stacked after OpenDyslexic."""
+    if style == "warm":
+        return ANKI_CSS
+    faces = [f'@font-face {{ font-family: "ND OpenDyslexic"; font-weight: {w}; '
+             f'src: url("_nd_opendyslexic-{w}.woff2") format("woff2"); }}' for w in OPENDYSLEXIC]
+    faces += [f'@font-face {{ font-family: "ND Font {i}"; src: url("{name}"); }}'
+              for i, name in enumerate(extra_fonts, 1)]
+    stack = ", ".join(['"ND OpenDyslexic"', *(f'"ND Font {i}"' for i in range(1, len(extra_fonts) + 1)),
+                       '"Segoe UI"', "system-ui", "sans-serif"])
+    base = ANKI_CSS.replace(".evidence.ev-guess, .evidence.ev-unverified { font-style: italic; }\n", "")
+    return "\n".join(faces) + base + ND_CSS.replace("__STACK__", stack)
+
+
+def bionic(text: str) -> str:
+    """Escaped HTML with the first half of each word bold (rounded up). Digits untouched."""
+    def bold(w: str) -> str:
+        k = (len(w) + 1) // 2
+        return f"<b>{html.escape(w[:k])}</b>{html.escape(w[k:])}"
+    parts = re.split(r"([^\W\d_]+)", text)  # odd indexes = words (letters only)
+    return "".join(bold(p) if i % 2 else html.escape(p) for i, p in enumerate(parts))
 
 
 def deck_id_for(deck_name: str) -> int:
@@ -94,9 +141,12 @@ def validate_nodes(data: object) -> list[dict]:
         for key in ("depends_on", "anchors"):
             if not _is_str_list(n.get(key) or []):
                 raise ValueError(f"node {n['id']!r} {key} must be a list of strings.")
-        for key in ("group", "summary", "card_front", "card_back"):
+        for key in ("group", "summary", "card_front", "card_back", "answer"):
             if n.get(key) is not None and not isinstance(n[key], str):
                 raise ValueError(f"node {n['id']!r} {key} must be a string.")
+        points = n.get("points") or []
+        if not _is_str_list(points) or len(points) > MAX_POINTS:
+            raise ValueError(f"node {n['id']!r} points must be a list of at most {MAX_POINTS} strings.")
         if n["id"] in seen:
             raise ValueError(f"duplicate node id {n['id']!r} (ids must be unique per graph).")
         seen.add(n["id"])
@@ -143,10 +193,20 @@ def topo_order(nodes: list[dict]) -> list[dict]:
     return out
 
 
-def _card_html(node: dict) -> tuple[str, str]:
-    """Return (front, back) as HTML. Back appends source-anchor and evidence chips."""
+def _card_html(node: dict, bionic_points: bool = False) -> tuple[str, str]:
+    """Return (front, back) as HTML. Back appends source-anchor and evidence chips.
+
+    Term cards: front = card_front or the title; back = the bold `answer` line plus up to
+    MAX_POINTS short `points` (escaped here). Otherwise back = card_back (trusted HTML).
+    """
     front = node.get("card_front") or node.get("title", "")
-    back = node.get("card_back") or node.get("summary", "")
+    if node.get("answer"):
+        fmt = bionic if bionic_points else html.escape
+        items = "".join(f"<li>{fmt(pt)}</li>" for pt in node.get("points") or [])
+        back = f'<div class="answer">{html.escape(node["answer"])}</div>'
+        back += f'<ul class="points">{items}</ul>' if items else ""
+    else:
+        back = node.get("card_back") or node.get("summary", "")
     anchors = node.get("anchors") or []
     chips = []
     # skip an anchor already written into card_back prose
@@ -159,14 +219,25 @@ def _card_html(node: dict) -> tuple[str, str]:
     return front, back
 
 
-def build_deck(nodes: list[dict], deck_name: str):
+def font_media(style: str, fonts: list[Path]) -> dict[str, Path]:
+    """Media file name -> source file for a style. `_` prefix: Anki's media check keeps them."""
+    if style == "warm":
+        return {}
+    media = {f"_nd_opendyslexic-{w}.woff2": path for w, path in OPENDYSLEXIC.items()}
+    media.update({f"_nd_font{i}{Path(f).suffix.lower()}": Path(f) for i, f in enumerate(fonts, 1)})
+    return media
+
+
+def build_deck(nodes: list[dict], deck_name: str, style: str = "warm",
+               fonts: list[Path] = (), bionic: bool = False):
     """genanki Deck with a per-name deck id and per-card guids (raises ImportError without genanki)."""
     import genanki  # type: ignore
 
+    extra = [name for name in font_media(style, list(fonts)) if name.startswith("_nd_font")]
     model = genanki.Model(
-        MODEL_ID, MODEL_NAME,
+        *((MODEL_ID, MODEL_NAME) if style == "warm" else (MODEL_ID_ND, MODEL_NAME_ND)),
         fields=[{"name": "Front"}, {"name": "Back"}],
-        css=ANKI_CSS,
+        css=anki_css(style, extra),
         templates=[{
             "name": "Card 1",
             "qfmt": '<div class="q">{{Front}}</div>',
@@ -175,21 +246,26 @@ def build_deck(nodes: list[dict], deck_name: str):
     )
     deck = genanki.Deck(deck_id_for(deck_name), deck_name)
     for n in topo_order(nodes):
-        f, b = _card_html(n)
+        f, b = _card_html(n, bionic)
         # guid from (deck, node id), not from the text: an edited card updates in place
         deck.add_note(genanki.Note(model=model, fields=[f, b],
                                    guid=genanki.guid_for(deck_name, n["id"])))
     return deck
 
 
-def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
+def write_anki(nodes: list[dict], deck_name: str, out: Path, style: str = "warm",
+               fonts: list[Path] = (), bionic: bool = False) -> str:
+    media = font_media(style, list(fonts))
+    missing = [str(p) for p in media.values() if not p.is_file()]
+    if missing:
+        raise ValueError(f"font file(s) not found: {missing}")
     try:
-        deck = build_deck(nodes, deck_name)
+        deck = build_deck(nodes, deck_name, style, fonts, bionic)
     except ImportError:
         tsv = out.with_suffix(".tsv")
         lines = []
         for n in topo_order(nodes):
-            f, b = _card_html(n)
+            f, b = _card_html(n, bionic)
             f = f.replace("\t", " ").replace("\n", " ")
             b = b.replace("\t", " ").replace("\n", "<br>")
             lines.append(f"{f}\t{b}")
@@ -199,8 +275,14 @@ def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
                 f"`pip install genanki` for a native .apkg.")
     import genanki  # type: ignore
 
-    genanki.Package(deck).write_to_file(str(out))
-    return f"wrote {out.name} ({len(deck.notes)} cards)."
+    import shutil
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:  # genanki names media by basename
+        files = [shutil.copyfile(src, Path(tmp) / name) for name, src in media.items()]
+        genanki.Package(deck, media_files=[str(f) for f in files]).write_to_file(str(out))
+    fonts_note = f", {len(media)} font file(s) embedded" if media else ""
+    return f"wrote {out.name} ({len(deck.notes)} cards{fonts_note})."
 
 
 def _md_escape(text: str) -> str:
@@ -321,6 +403,11 @@ def main() -> None:
     ap.add_argument("--name", default=None, help="basename for outputs (default: from deck-name)")
     ap.add_argument("--source", default="",
                     help="shown in the map header, e.g. 'repo@abc123' or 'topic, 2026-09-23'")
+    ap.add_argument("--style", choices=("warm", "nd"), default="warm",
+                    help="nd = ADHD/dyslexia/autism-friendly cards: OpenDyslexic, spacing, no italics")
+    ap.add_argument("--font-file", type=Path, action="append", default=[],
+                    help="nd style: extra font embedded after OpenDyslexic (e.g. one with Cyrillic); repeatable")
+    ap.add_argument("--bionic", action="store_true", help="bold the first half of each word in points")
     args = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):  # Windows consoles default to cp1252
         sys.stdout.reconfigure(encoding="utf-8")
@@ -332,7 +419,11 @@ def main() -> None:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     base = args.name or re.sub(r"[^\w]+", "-", args.deck_name).strip("-").lower()
 
-    anki_msg = write_anki(nodes, args.deck_name, args.out_dir / f"{base}.apkg")
+    try:
+        anki_msg = write_anki(nodes, args.deck_name, args.out_dir / f"{base}.apkg",
+                              args.style, args.font_file, args.bionic)
+    except ValueError as e:
+        sys.exit(f"ERROR: {e}")
     map_msg = write_mindmap(nodes, args.deck_name, args.out_dir / f"{base}.mindmap.html", args.source)
     print("Anki:   " + anki_msg)
     print("Mind-map: " + map_msg)

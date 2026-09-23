@@ -41,8 +41,10 @@ SKILL.md for the node schema before writing the graph.
    - `unverified` — only the abstract or a secondary mention was read.
 3. **Honesty rule (mirror of the code rule):** anchor only what was actually opened. Never invent a DOI,
    section, table or number. If a source could not be opened, keep the node but mark it `unverified`
-   and say so in `card_back`.
-4. Put the uncertainty on the card: `card_back` distinguishes "the paper shows" from "this suggests".
+   and say so in the node's first `points` entry.
+4. **Cards teach terms in simple words** (core SKILL.md, "Writing cards"): front = the term,
+   `answer` = one plain sentence, `points` ≤ 3 short facts. The "paper shows vs suggests" nuance,
+   numbers and critique go in `summary`, which the mind-map shows; keep them off the card.
 5. Write the graph to `_ram_graph.json`.
 
 ## Gate 2 — approve the node list, then render
@@ -51,7 +53,7 @@ Show node titles + groups + evidence; let the user prune/add. Then render with t
 
 ```bash
 python <skills-dir>/anki-mindmap/build.py _ram_graph.json --deck-name "<Topic>" \
-  --out-dir ./study --source "<topic>, <YYYY-MM-DD>"
+  --out-dir ./study --source "<topic>, <YYYY-MM-DD>"   # add --style nd [--bionic] if asked
 ```
 
 Report the card count, how many nodes are `unverified`, how to import the `.apkg`, and that the map

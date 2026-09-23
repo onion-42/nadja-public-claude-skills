@@ -243,3 +243,80 @@ def test_list_like_titles_are_escaped(tmp_path, title):
     _, md = _page(tmp_path, [dict(NODES[0], title=title)])
     label = md.splitlines()[-1].split("- ", 1)[1]
     assert label.startswith("\\") or "\." in label or "\)" in label, label
+
+
+# --- term cards (answer + points), nd style, fonts, bionic -------------------------
+
+TERM = {"id": "koleo", "title": "KoLeo regularizer", "group": "Methods",
+        "answer": "Pushes embeddings apart from each other.",
+        "points": ["Penalizes a close neighbour in the batch", "Helps retrieval most"],
+        "anchors": ["arXiv:2304.07193 §4"], "evidence": "shown"}
+
+
+def test_term_card_front_defaults_to_title():
+    front, _ = build._card_html(TERM)
+    assert front == "KoLeo regularizer"
+
+
+def test_term_card_back_is_answer_line_then_points():
+    _, back = build._card_html(TERM)
+    assert '<div class="answer">Pushes embeddings apart from each other.</div>' in back
+    assert back.count("<li>") == 2
+    assert back.index('class="answer"') < back.index('<ul class="points">') < back.index('class="source"')
+
+
+def test_term_card_text_is_html_escaped():
+    _, back = build._card_html(dict(TERM, answer="a <b> & c", points=["<script>x</script>"]))
+    assert "&lt;b&gt; &amp; c" in back and "<script>" not in back
+
+
+def test_load_graph_rejects_more_than_three_points(tmp_path):
+    with pytest.raises(ValueError):
+        build.load_graph(_write(tmp_path, [dict(TERM, points=["a", "b", "c", "d"])]))
+
+
+@pytest.mark.parametrize("bad", [{"answer": 3}, {"points": "one string"}, {"points": [1]}])
+def test_load_graph_rejects_bad_term_fields(tmp_path, bad):
+    with pytest.raises(ValueError):
+        build.load_graph(_write(tmp_path, [dict(TERM, **bad)]))
+
+
+def test_bionic_bolds_word_starts_in_points_only():
+    _, back = build._card_html(TERM, bionic_points=True)
+    assert "<b>Penal</b>izes" in back           # points: word starts bold
+    assert "<b>Push" not in back                 # the answer line is bold as a whole via CSS
+    assert "<b>" not in build._card_html(TERM)[1]
+
+
+def test_bionic_keeps_cyrillic_and_numbers():
+    assert build.bionic("штраф 55.6") == "<b>штр</b>аф 55.6"
+
+
+def test_nd_css_stacks_opendyslexic_then_extra_fonts():
+    css = build.anki_css("nd", ["_nd_font1.ttf"])
+    assert css.index('"ND OpenDyslexic"') < css.index('"ND Font 1"')
+    assert 'url("_nd_font1.ttf")' in css
+    assert "font-style: italic" not in css
+
+
+def test_warm_css_is_unchanged_default():
+    assert build.anki_css("warm", []) == build.ANKI_CSS
+
+
+@needs_genanki
+def test_nd_deck_uses_its_own_note_type():
+    warm = build.build_deck([TERM], "Study")
+    nd = build.build_deck([TERM], "Study", style="nd")
+    assert warm.notes[0].model.model_id != nd.notes[0].model.model_id
+    assert warm.notes[0].guid == nd.notes[0].guid
+
+
+@needs_genanki
+def test_nd_apkg_embeds_opendyslexic_and_extra_font(tmp_path):
+    import zipfile
+    font = tmp_path / "MyFont.ttf"
+    font.write_bytes(b"\x00\x01\x00\x00fake")
+    out = tmp_path / "d.apkg"
+    build.write_anki([TERM], "Study", out, style="nd", fonts=[font])
+    media = json.loads(zipfile.ZipFile(out).read("media"))
+    assert {"_nd_opendyslexic-400.woff2", "_nd_font1.ttf"} <= set(media.values())
