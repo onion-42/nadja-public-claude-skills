@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ — mind-map</title>
+<style>
+  :root { --paper:#faf6ef; --surface:#fffdf8; --ink:#2b2622; --ink-soft:#6b6259;
+    --accent:#b0603f; --code-bg:#f0e9dd; --border:#e5dccb; --shadow:rgba(43,38,34,.12); color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --paper:#211d1a; --surface:#2a2521; --ink:#efe7db; --ink-soft:#b6ab9c;
+    --accent:#e08a63; --code-bg:#2f2823; --border:#3d352d; --shadow:rgba(0,0,0,.45); color-scheme: dark; } }
+  :root[data-theme="dark"] { --paper:#211d1a; --surface:#2a2521; --ink:#efe7db;
+    --ink-soft:#b6ab9c; --accent:#e08a63; --code-bg:#2f2823; --border:#3d352d; --shadow:rgba(0,0,0,.45); color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,"Segoe UI","Inter",system-ui,sans-serif; }
+  body { display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+  code, .chip { font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace; }
+  .mm-header { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 24px;
+    padding:18px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .mm-title { margin:0; font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    font-size:clamp(1.25rem, 2.6vw, 1.7rem); font-weight:600; line-height:1.2; }
+  .mm-meta { margin:4px 0 0; color:var(--ink-soft); font-size:.88rem; }
+  .mm-legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin:0; padding:0; list-style:none;
+    font-size:.85rem; color:var(--ink-soft); }
+  .mm-legend li { display:flex; align-items:center; gap:6px; }
+  .mm-swatch { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .mm-tools { margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; }
+  button { font:inherit; font-size:.85rem; color:var(--ink); background:var(--paper);
+    border:1px solid var(--border); border-radius:8px; padding:6px 11px; cursor:pointer; min-height:34px; }
+  button:hover { border-color:var(--accent); }
+  button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  main { flex:1; min-height:0; position:relative; }
+  svg#mm { width:100%; height:100%; display:block; touch-action:none; }
+  /* id-level specificity: markmap injects its own .markmap defaults later in the page */
+  svg#mm.markmap { --markmap-text-color: var(--ink); --markmap-code-bg: var(--code-bg);
+    --markmap-code-color: var(--ink-soft); --markmap-font: 500 15px/1.4 -apple-system,"Segoe UI","Inter",system-ui,sans-serif; }
+  svg#mm .markmap-foreign { color:var(--ink); cursor:pointer; }
+  svg#mm .markmap-foreign code { font-size:.66em; font-weight:500; background:var(--code-bg);
+    color:var(--ink-soft); padding:0 5px; border-radius:5px; border:1px solid var(--border);
+    vertical-align:.15em; }
+  svg#mm .markmap-node[data-depth="1"] .markmap-foreign {
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif; font-size:19px; font-weight:600; }
+  svg#mm .markmap-node[data-depth="2"] .markmap-foreign { font-weight:600; }
+  .mm-fallback { position:absolute; inset:0; display:none; padding:24px 16px; color:var(--ink-soft); }
+  #mm-details { position:absolute; top:12px; right:12px; bottom:12px; width:min(360px, calc(100% - 24px));
+    overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:0 10px 30px var(--shadow); padding:18px 18px 22px; }
+  #mm-details[hidden] { display:none; }
+  #mm-details h2 { margin:0 32px 6px 0; font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    font-size:1.2rem; line-height:1.3; }
+  #mm-details .grp { margin:0 0 12px; color:var(--ink-soft); font-size:.82rem; display:flex; align-items:center; gap:6px; }
+  #mm-details p.sum { margin:0 0 14px; line-height:1.6; }
+  #mm-details .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { font-size:.78rem; background:var(--code-bg); color:var(--accent); border:1px solid var(--border);
+    border-radius:6px; padding:2px 7px; }
+  .chip.ev { color:var(--ink-soft); }
+  #mm-close { position:absolute; top:10px; right:10px; min-height:30px; padding:2px 9px; }
+  @media (max-width: 640px) {
+    .mm-tools { margin-left:0; }
+    #mm-details { top:auto; left:0; right:0; bottom:0; width:100%; max-height:55%;
+      border-radius:16px 16px 0 0; border-bottom:0; }
+  }
+</style>
+</head><body>
+<header class="mm-header">
+  <div>
+    <h1 class="mm-title">__TITLE__</h1>
+    <p class="mm-meta">__META__</p>
+  </div>
+  <ul class="mm-legend">__LEGEND__</ul>
+  <div class="mm-tools">
+    <button id="mm-fit" type="button">Fit</button>
+    <button id="mm-expand" type="button">Expand all</button>
+    <button id="mm-collapse" type="button">Level 2</button>
+    <button id="mm-theme" type="button" aria-label="Toggle light or dark theme">Theme</button>
+  </div>
+</header>
+<main>
+  <svg id="mm" class="markmap"></svg>
+  <aside id="mm-details" hidden aria-live="polite">
+    <button id="mm-close" type="button" aria-label="Close details">×</button>
+    <h2 id="mm-d-title"></h2>
+    <p class="grp" id="mm-d-group"></p>
+    <p class="sum" id="mm-d-sum"></p>
+    <div class="chips" id="mm-d-chips"></div>
+  </aside>
+  <p class="mm-fallback" id="mm-fallback">The map library could not load (offline or blocked CDN).
+  Open the <code>.md</code> file next to this page at markmap.js.org.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.18/dist/browser/index.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18/dist/browser/index.js"></script>
+<script>
+const MD = __MD_JSON__;
+const INFO = __INFO_JSON__;  // visible label -> {title, group, color, summary, anchors, evidence}
+const ROOT_COLOR = "__ROOT_COLOR__";
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const root = document.documentElement;
+  try { const t = localStorage.getItem("mm-theme"); if (t) root.dataset.theme = t; } catch (e) {}
+  $("mm-theme").addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("mm-theme", root.dataset.theme); } catch (e) {}
+  });
+  if (!window.markmap || !window.markmap.Transformer || !window.markmap.Markmap) {
+    $("mm-fallback").style.display = "block";
+    return;
+  }
+  const { Transformer, Markmap, deriveOptions } = window.markmap;
+  const { root: data, frontmatter } = new Transformer().transform(MD);
+  const plain = (s) => (s || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  const opts = deriveOptions((frontmatter && frontmatter.markmap) || {});
+  opts.color = (node) => (INFO[plain(node.content)] || {}).color || ROOT_COLOR;
+  const mm = Markmap.create("svg#mm", opts, data);
+  const walk = (n, depth, f) => { f(n, depth); (n.children || []).forEach(c => walk(c, depth + 1, f)); };
+  // Mirror markmap's own toggleNode: edit payload.fold on the live tree, then renderData().
+  // setData() would re-run _initializeData and re-fold everything past initialExpandLevel.
+  const foldFrom = async (level) => {
+    walk(mm.state.data, 0, (n, d) => { n.payload = Object.assign({}, n.payload,
+      { fold: level !== null && d >= level && (n.children || []).length ? 1 : 0 }); });
+    await mm.renderData();
+    await mm.fit();
+  };
+  $("mm-expand").addEventListener("click", () => foldFrom(null));
+  $("mm-collapse").addEventListener("click", () => foldFrom(2));
+  $("mm-fit").addEventListener("click", () => mm.fit());
+
+  const panel = $("mm-details");
+  const show = (info) => {
+    $("mm-d-title").textContent = info.title;
+    $("mm-d-group").innerHTML = "";
+    if (info.group) {
+      const sw = document.createElement("span");
+      sw.className = "mm-swatch"; sw.style.background = info.color;
+      $("mm-d-group").append(sw, document.createTextNode(info.group));
+    }
+    $("mm-d-sum").textContent = info.summary || "";
+    const chips = $("mm-d-chips"); chips.innerHTML = "";
+    (info.anchors || []).forEach(a => { const c = document.createElement("span");
+      c.className = "chip"; c.textContent = a; chips.append(c); });
+    if (info.evidence) { const c = document.createElement("span");
+      c.className = "chip ev"; c.textContent = "evidence: " + info.evidence; chips.append(c); }
+    panel.hidden = false;
+  };
+  const hide = () => { panel.hidden = true; };
+  $("mm-close").addEventListener("click", hide);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  // Clicking a label opens details; the circle keeps markmap's own fold toggle.
+  $("mm").addEventListener("click", (e) => {
+    const fo = e.target.closest(".markmap-foreign");
+    const g = fo && fo.closest(".markmap-node");
+    const info = g && g.__data__ && INFO[plain(g.__data__.content)];
+    if (info) show(info);
+  });
+})();
+</script>
+</body></html>

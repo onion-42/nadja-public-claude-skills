@@ -2,28 +2,37 @@
 """Render a concept-graph JSON into an Anki deck (.apkg) and a Markmap mind-map (.html).
 
 Input graph: a JSON list of nodes, each with at least {id, title, card_front,
-card_back} and optionally {group, depends_on, anchors, summary}. See SKILL.md.
+card_back} and optionally {group, depends_on, anchors, summary, evidence}. See SKILL.md.
+The graph can come from anywhere (a code repo, papers, session notes): this script
+only renders it.
 
 Degrades instead of failing:
 - no genanki installed -> writes a TSV Anki can import (File > Import).
-- no markmap-cli/npx    -> writes a .md the user drops at https://markmap.js.org.
+- no network at view time -> the .md next to the map renders at https://markmap.js.org.
 
-KISS: stdlib + optional genanki. No network, no config.
+KISS: stdlib + optional genanki. No network at build time, no config.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
+import html
 import json
+import re
 import sys
 from pathlib import Path
 
-# Stable ids so re-running UPDATES the same deck/model instead of duplicating.
-DECK_ID = 1607392319
+# The note type keeps one stable id: every deck shares it, so cards keep their styling
+# and re-imports update the model instead of cloning it.
 MODEL_ID = 1091735104
+MODEL_NAME = "anki-mindmap Warm"
+EVIDENCE = ("shown", "plausible", "guess", "unverified")
 
 # --- Shared "Warm study / paper" design system (site + Anki + mind-map) ---
-# Muted branch palette for the mind-map, ordered for readable adjacency.
-MAP_BRANCH_COLORS = ["#b0603f", "#5a7d6f", "#c08a2d", "#6b7f9e", "#8c5a6e", "#7a8a5a"]
+# Muted branch palette; every colour clears 3:1 against both paper backgrounds
+# (#faf6ef light, #211d1a dark), so links and swatches read in either theme.
+MAP_BRANCH_COLORS = ["#b8683f", "#4f8a76", "#b07f22", "#6a82b0", "#a8628a", "#7c8f3e"]
+MAP_ROOT_COLOR = "#8a7f73"
 
 # Anki card face CSS. Phone-first, warm cream, high contrast, dark-mode aware
 # (Anki adds .night_mode / .card.nightMode). Baked into the genanki Model so a
@@ -46,24 +55,24 @@ hr#answer {
   border: 0; height: 1px; background: var(--accent); opacity: .5;
   margin: 20px 0; }
 .a { font-size: 1em; color: var(--ink); }
-.a code, .anchor {
+.a code, .source, .evidence {
   font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
   font-size: .82em; background: var(--code-bg); color: var(--accent);
   padding: 2px 7px; border-radius: 6px; border: 1px solid var(--border);
   white-space: nowrap; }
-.anchor { display: inline-block; margin-top: 14px; }
+.source, .evidence { display: inline-block; margin-top: 14px; }
+.evidence { color: var(--ink-soft); }
+.evidence.ev-shown { color: #4f8a76; }
+.evidence.ev-guess, .evidence.ev-unverified { font-style: italic; }
 .night_mode .card, .card.nightMode {
   --paper: #211d1a; --surface: #2a2521; --ink: #efe7db; --ink-soft: #b6ab9c;
   --accent: #e08a63; --code-bg: #2f2823; --border: #3d352d; }
 """
 
 
-def _anki_front(front: str) -> str:
-    return f'<div class="q">{front}</div>'
-
-
-def _anki_back(back: str) -> str:
-    return f'<div class="a">{back}</div>'
+def deck_id_for(deck_name: str) -> int:
+    """Stable per-deck id: decks with different names never merge in Anki."""
+    return int(hashlib.sha1(deck_name.encode("utf-8")).hexdigest()[:8], 16) % (2**31 - 1) + 1
 
 
 def load_graph(path: Path) -> list[dict]:
@@ -72,9 +81,16 @@ def load_graph(path: Path) -> list[dict]:
         data = data["nodes"]
     if not isinstance(data, list):
         sys.exit("ERROR: graph JSON must be a list of nodes (or {'nodes': [...]}).")
+    seen: set[str] = set()
     for i, n in enumerate(data):
         if not isinstance(n, dict) or "id" not in n or "title" not in n:
             sys.exit(f"ERROR: node {i} missing required 'id'/'title'.")
+        if n["id"] in seen:
+            sys.exit(f"ERROR: duplicate node id {n['id']!r} (ids must be unique per graph).")
+        seen.add(n["id"])
+        ev = n.get("evidence")
+        if ev is not None and ev not in EVIDENCE:
+            sys.exit(f"ERROR: node {n['id']!r} has evidence {ev!r}; use one of {EVIDENCE}.")
     return data
 
 
@@ -109,37 +125,28 @@ def topo_order(nodes: list[dict]) -> list[dict]:
 
 
 def _card_html(node: dict) -> tuple[str, str]:
-    """Return (front, back) as HTML. Back appends a styled code-anchor chip."""
+    """Return (front, back) as HTML. Back appends source-anchor and evidence chips."""
     front = node.get("card_front") or node.get("title", "")
     back = node.get("card_back") or node.get("summary", "")
     anchors = node.get("anchors") or []
-    if anchors:
-        chips = " ".join(f'<span class="anchor">{a}</span>' for a in anchors)
-        # avoid duplicating an anchor already written into card_back prose
-        if not any(a in back for a in anchors):
-            back = f"{back}<br>{chips}"
+    chips = []
+    # avoid duplicating an anchor already written into card_back prose
+    if anchors and not any(a in back for a in anchors):
+        chips += [f'<span class="source">{a}</span>' for a in anchors]
+    ev = node.get("evidence")
+    if ev:
+        chips.append(f'<span class="evidence ev-{ev}">{ev}</span>')
+    if chips:
+        back = f"{back}<br>{' '.join(chips)}"
     return front, back
 
 
-def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
-    ordered = topo_order(nodes)
-    try:
-        import genanki  # type: ignore
-    except ImportError:
-        tsv = out.with_suffix(".tsv")
-        lines = []
-        for n in ordered:
-            f, b = _card_html(n)
-            f = f.replace("\t", " ").replace("\n", " ")
-            b = b.replace("\t", " ").replace("\n", "<br>")
-            lines.append(f"{f}\t{b}")
-        tsv.write_text("\n".join(lines), encoding="utf-8")
-        return (f"genanki not installed -> wrote {tsv.name} ({len(ordered)} cards). "
-                f"Import in Anki: File > Import (field 1=Front, field 2=Back). "
-                f"`pip install genanki` for a native .apkg.")
+def build_deck(nodes: list[dict], deck_name: str):
+    """genanki Deck with a per-name deck id and per-card guids (raises ImportError without genanki)."""
+    import genanki  # type: ignore
 
     model = genanki.Model(
-        MODEL_ID, "repo-anki-mindmap Warm",
+        MODEL_ID, MODEL_NAME,
         fields=[{"name": "Front"}, {"name": "Back"}],
         css=ANKI_CSS,
         templates=[{
@@ -148,12 +155,40 @@ def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
             "afmt": '<div class="q">{{Front}}</div><hr id="answer"><div class="a">{{Back}}</div>',
         }],
     )
-    deck = genanki.Deck(DECK_ID, deck_name)
-    for n in ordered:
+    deck = genanki.Deck(deck_id_for(deck_name), deck_name)
+    for n in topo_order(nodes):
         f, b = _card_html(n)
-        deck.add_note(genanki.Note(model=model, fields=[f, b]))
+        # guid from (deck, node id), not from the text: an edited card updates in place
+        deck.add_note(genanki.Note(model=model, fields=[f, b],
+                                   guid=genanki.guid_for(deck_name, n["id"])))
+    return deck
+
+
+def write_anki(nodes: list[dict], deck_name: str, out: Path) -> str:
+    try:
+        deck = build_deck(nodes, deck_name)
+    except ImportError:
+        tsv = out.with_suffix(".tsv")
+        lines = []
+        for n in topo_order(nodes):
+            f, b = _card_html(n)
+            f = f.replace("\t", " ").replace("\n", " ")
+            b = b.replace("\t", " ").replace("\n", "<br>")
+            lines.append(f"{f}\t{b}")
+        tsv.write_text("\n".join(lines), encoding="utf-8")
+        return (f"genanki not installed -> wrote {tsv.name} ({len(lines)} cards). "
+                f"Import in Anki: File > Import (field 1=Front, field 2=Back). "
+                f"`pip install genanki` for a native .apkg.")
+    import genanki  # type: ignore
+
     genanki.Package(deck).write_to_file(str(out))
-    return f"wrote {out.name} ({len(ordered)} cards)."
+    return f"wrote {out.name} ({len(deck.notes)} cards)."
+
+
+def _label(node: dict) -> str:
+    """Map label: title plus an inline evidence chip when the node has one."""
+    ev = node.get("evidence")
+    return f"{node.get('title', node['id'])} `{ev}`" if ev else node.get("title", node["id"])
 
 
 def _outline(nodes: list[dict], title: str) -> str:
@@ -175,11 +210,7 @@ def _outline(nodes: list[dict], title: str) -> str:
         if nid in seen:  # guard against cycles
             return
         seen.add(nid)
-        node = by_id[nid]
-        label = node.get("title", nid)
-        grp = node.get("group")
-        suffix = f"  _{grp}_" if grp and depth == 0 else ""
-        lines.append(f"{'  ' * (depth + 1)}- {label}{suffix}")
+        lines.append(f"{'  ' * (depth + 1)}- {_label(by_id[nid])}")
         for c in children.get(nid, []):
             emit(c, depth + 1)
 
@@ -188,32 +219,21 @@ def _outline(nodes: list[dict], title: str) -> str:
     return "\n".join(lines) + "\n"
 
 
-# Self-contained mind-map page. markmap is loaded from the jsdelivr CDN at VIEW
-# time (no npm install at build — corp TLS proxies choke on runtime `npx`), and
-# the "Warm study / paper" world is baked into the page CSS. The markdown lives
-# inline in a <script type="text/template"> the autoloader renders.
-MAP_HTML = """<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title} — mind-map</title>
-<style>
-  :root {{ --paper:#faf6ef; --ink:#2b2622; }}
-  @media (prefers-color-scheme: dark){{ :root{{ --paper:#211d1a; --ink:#efe7db; }} }}
-  html, body {{ margin:0; height:100%; background:var(--paper);
-    font-family:-apple-system,"Segoe UI","Inter",system-ui,sans-serif; }}
-  svg.markmap {{ width:100vw; height:100vh; display:block; }}
-  .markmap-node text {{ fill:var(--ink); font-weight:500; }}
-  .markmap-link {{ stroke-opacity:.55; }}
-</style>
-</head><body>
-<div class="markmap" style="width:100vw;height:100vh">
-<script type="text/template">
-{md}
-</script>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.18"></script>
-</body></html>
-"""
+def _group_colors(nodes: list[dict]) -> dict[str, str]:
+    """group -> branch colour, in first-appearance order (drives map + legend)."""
+    groups = list(dict.fromkeys(n.get("group") or "Other" for n in nodes))
+    return {g: MAP_BRANCH_COLORS[i % len(MAP_BRANCH_COLORS)] for i, g in enumerate(groups)}
+
+
+def _plain(label: str) -> str:
+    """The visible text markmap renders for a label (backticks dropped)."""
+    return re.sub(r"\s+", " ", label.replace("`", "")).strip()
+
+
+# Mind-map page template (same "Warm study / paper" world). markmap (d3 + markmap-lib +
+# markmap-view) loads from the jsdelivr CDN at VIEW time: no npm at build (corp TLS
+# proxies choke on runtime `npx`), and holding the Markmap instance enables the toolbar.
+MAP_TEMPLATE = Path(__file__).resolve().parent / "map_template.html"
 
 
 def _frontmatter() -> str:
@@ -227,12 +247,30 @@ def _frontmatter() -> str:
             "---\n\n")
 
 
-def write_mindmap(nodes: list[dict], title: str, out: Path) -> str:
+def write_mindmap(nodes: list[dict], title: str, out: Path, source: str = "") -> str:
     md = _frontmatter() + _outline(nodes, title)
     # .md alongside the HTML for offline use at https://markmap.js.org
     md_path = out.with_suffix(".md")  # out is "<base>.mindmap.html" -> "<base>.mindmap.md"
     md_path.write_text(md, encoding="utf-8")
-    out.write_text(MAP_HTML.format(title=title, md=md), encoding="utf-8")
+    colors = _group_colors(nodes)
+    info = {_plain(_label(n)): {
+        "title": n.get("title", n["id"]), "group": n.get("group") or "Other",
+        "color": colors[n.get("group") or "Other"],
+        "summary": n.get("summary") or n.get("card_back", ""),
+        "anchors": n.get("anchors") or [], "evidence": n.get("evidence")} for n in nodes}
+    legend = "".join(f'<li><span class="mm-swatch" style="background:{c}"></span>{html.escape(g)}</li>'
+                     for g, c in colors.items())
+    meta = f"{len(nodes)} cards" + (f" · {source}" if source else "")
+
+    def js(obj: object) -> str:
+        return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/")
+
+    page = MAP_TEMPLATE.read_text(encoding="utf-8")
+    for key, value in {"__TITLE__": html.escape(title), "__META__": html.escape(meta),
+                       "__LEGEND__": legend, "__MD_JSON__": js(md), "__INFO_JSON__": js(info),
+                       "__ROOT_COLOR__": MAP_ROOT_COLOR}.items():
+        page = page.replace(key, value)
+    out.write_text(page, encoding="utf-8")
     return (f"wrote {out.name} (interactive mind-map, paper theme; loads markmap from the "
             f"CDN on first open — needs network then). Portable source: {md_path.name} "
             f"(render at https://markmap.js.org or with a local markmap-cli).")
@@ -241,17 +279,21 @@ def write_mindmap(nodes: list[dict], title: str, out: Path) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description="concept-graph JSON -> Anki .apkg + Markmap .html")
     ap.add_argument("graph", type=Path, help="path to the concept-graph JSON")
-    ap.add_argument("--deck-name", default="Repo study deck")
+    ap.add_argument("--deck-name", default="Study deck")
     ap.add_argument("--out-dir", type=Path, default=Path("."))
     ap.add_argument("--name", default=None, help="basename for outputs (default: from deck-name)")
+    ap.add_argument("--source", default="",
+                    help="shown in the map header, e.g. 'repo@abc123' or 'topic, 2026-09-23'")
     args = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):  # Windows consoles default to cp1252
+        sys.stdout.reconfigure(encoding="utf-8")
 
     nodes = load_graph(args.graph)
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    base = args.name or "".join(c if c.isalnum() else "-" for c in args.deck_name).strip("-").lower()
+    base = args.name or re.sub(r"[^\w]+", "-", args.deck_name).strip("-").lower()
 
     anki_msg = write_anki(nodes, args.deck_name, args.out_dir / f"{base}.apkg")
-    map_msg = write_mindmap(nodes, args.deck_name, args.out_dir / f"{base}.mindmap.html")
+    map_msg = write_mindmap(nodes, args.deck_name, args.out_dir / f"{base}.mindmap.html", args.source)
     print("Anki:   " + anki_msg)
     print("Mind-map: " + map_msg)
 
