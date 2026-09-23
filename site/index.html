@@ -77,6 +77,15 @@
   .s3 label{display:block; font-size:.78rem; color:var(--ink-soft); margin-bottom:5px}
   .s3 input{width:100%; border:1px solid var(--border); background:var(--surface); color:var(--ink);
     border-radius:9px; padding:8px 10px; font-family:var(--mono); font-size:.78rem}
+  .panels{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px; margin-top:28px}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:10px; min-width:0}
+  .panel h2{font-family:var(--serif); font-size:1.3rem; font-weight:600; margin:0}
+  .panel p{margin:0}
+  .panel .snippet{margin-top:0}
+  .hint{color:var(--ink-soft); font-size:.88rem}
+  a{color:var(--accent)}
+  .card .plug{font-size:.74rem; color:var(--ink-soft)}
   footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:.86rem}
   .empty{color:var(--ink-soft); padding:40px 4px}
   @media (max-width:560px){ header{padding-top:40px} .grid{grid-template-columns:1fr} }
@@ -87,11 +96,36 @@
   <header>
     <div>
       <h1>Team Skills<span class="dot">.</span></h1>
-      <p class="lede">A curated bundle of Claude Code skills and agents for one goal:
-        spend tokens well — finish tasks without spawning new ones.</p>
+      <p class="lede">A Claude Code plugin marketplace with two plugins. <strong>team</strong> holds
+        workflow skills and agents that help you spend tokens well and finish tasks without starting
+        new ones. <strong>neurodivergent</strong> is an opt-in set of comfort tools for ADHD, autistic
+        and dyslexic users.</p>
     </div>
     <button class="theme" id="theme" aria-label="Toggle theme">Theme: Auto</button>
   </header>
+
+  <section class="panels" aria-label="Install and demo">
+    <div class="panel">
+      <h2>Install</h2>
+      <p>Run these in Claude Code. The second plugin is optional and works best alongside the first.</p>
+      <div class="snippet"><code>/plugin marketplace add onion-42/nadja-public-claude-skills</code><button class="copy">Copy</button></div>
+      <div class="snippet"><code>/plugin install team@team-claude-skills</code><button class="copy">Copy</button></div>
+      <div class="snippet"><code>/plugin install neurodivergent@team-claude-skills</code><button class="copy">Copy</button></div>
+      <p class="hint">Or copy a single item with the command on its card; run it from the root of a
+        clone (<code>git clone https://github.com/onion-42/nadja-public-claude-skills</code>).</p>
+    </div>
+    <div class="panel">
+      <h2>Demo: a study deck</h2>
+      <p>A study deck built with <code>research-anki-mindmap</code> on self-supervised pathology
+        foundation models (DINOv2 to Virchow). Each card cites the paper section it came from and
+        carries an evidence level.</p>
+      <p class="links"><a href="demo/pathology-foundation-models.mindmap.html">Open the mind-map</a>
+        · <a href="demo/pathology-foundation-models.apkg" download>Download the Anki deck</a>
+        · <a href="demo/pathology-foundation-models.mindmap.md">Outline (.md)</a></p>
+      <p class="hint">This page has the <strong>easy-read</strong> panel. Click the "Aa" button
+        at the bottom left to change the font, spacing and colours.</p>
+    </div>
+  </section>
 
   <div class="controls">
     <input class="search" id="search" type="search" placeholder="Search skills…" aria-label="Search">
@@ -102,11 +136,15 @@
   <div class="empty" id="empty" hidden>Nothing matches that filter.</div>
 
   <footer>
-    Copy a card's command to install that skill into <code>~/.claude/skills/</code> or
-    <code>~/.claude/agents/</code>. Two skills need one setting of your own —
-    <strong>agent-bus</strong> (your S3 bucket) and <strong>rag-eval</strong> (an approved judge model).
+    Copy a card's command to install that one item without the plugin system. Two skills need one
+    setting of your own: <strong>agent-bus</strong> (your S3 bucket) and <strong>rag-eval</strong>
+    (an approved judge model), and <strong>notify</strong> needs your own Telegram bot.
+    The neurodivergent tools are offered for comfort and choice; they do not claim to improve
+    reading or work performance. MIT licence ·
+    <a href="https://github.com/onion-42/nadja-public-claude-skills">source on GitHub</a>.
   </footer>
 </div>
+<script src="../plugins/team/skills/easy-read/easy-read.js"></script>
 
 <script>
 const SKILLS = [
@@ -141,8 +179,22 @@ const SKILLS = [
   {n:"deep-research",c:"Research",k:"skill",d:"Multi-source deep research that synthesizes findings into cited, source-attributed reports."},
   {n:"research-cite",c:"Research",k:"skill",d:"Persist and citation-audit a completed research run into a saved, cited Markdown report."},
   {n:"find-docs",c:"Research",k:"skill",d:"Fetch up-to-date documentation, API references and examples for any developer technology."},
-  // Study Artifacts
-  {n:"repo-anki-mindmap",c:"Study Artifacts",k:"skill",d:"Turn a repo into an Anki deck (.apkg) AND an interactive mind-map from one shared concept graph."},
+  // Study & Reading
+  {n:"anki-mindmap",c:"Study & Reading",k:"skill",d:"Core renderer: one concept graph → an Anki deck (.apkg) plus an interactive mind-map, with source chips and evidence levels."},
+  {n:"repo-anki-mindmap",c:"Study & Reading",k:"skill",d:"Build the concept graph from a code repository (file:line anchors), then render it with anki-mindmap."},
+  {n:"research-anki-mindmap",c:"Study & Reading",k:"skill",d:"Build the concept graph from papers, notes or a topic; every claim cites what was opened and carries an evidence level."},
+  {n:"easy-read",c:"Study & Reading",k:"skill",d:"A reading-comfort panel for any HTML page: fonts, spacing, calm colours, bold word starts, focus highlight. Try it on this page."},
+  // Neurodivergent plugin
+  {n:"cho",c:"Neurodivergent",p:"neurodivergent",k:"skill",d:"\"What's going on?\": a short status of the current session: what we are on, what is done, what is next, any blockers."},
+  {n:"goal",c:"Neurodivergent",p:"neurodivergent",k:"skill",d:"Turn a dense multi-part prompt into a pinned GOAL block (sub-goals, constraints, definition of done) and check later asks for drift."},
+  {n:"nopanic",c:"Neurodivergent",p:"neurodivergent",k:"skill",d:"Calm support when overwhelmed: a safety check first, CBT/DBT grounding, then one tiny next step. Also specific, earned praise."},
+  {n:"when-stuck",c:"Neurodivergent",p:"neurodivergent",k:"skill",d:"Pick a problem-solving technique by the kind of stuck you are in."},
+  {n:"mini-reflection",c:"Neurodivergent",p:"neurodivergent",k:"skill",d:"A warm end-of-task reflection in at most 8 lines: what you did, one \"next time try\", one specific praise. No shame."},
+  {n:"notify",c:"Neurodivergent",p:"neurodivergent",k:"skill",d:"One Telegram line from your own bot when a long task is done or Claude is waiting for you. Token from environment variables, never printed."},
+  {n:"checkpoint",c:"Neurodivergent",p:"neurodivergent",k:"command",d:"Named checkpoints (git SHA and a log line) so you can see what changed since a known-good point."},
+  {n:"pickup-handoff",c:"Neurodivergent",p:"neurodivergent",k:"command",d:"Receive a handoff doc, restate goal / done / pending / next step, and question the plan's gray areas before touching anything."},
+  {n:"mode",c:"Neurodivergent",p:"neurodivergent",k:"command",d:"Switch nd-friendly style flags: full or short, bionic, anchor, soft, literal+."},
+  {n:"nd-friendly",c:"Neurodivergent",p:"neurodivergent",k:"style",d:"Output style: answer first, literal language, explicit assumptions, one next action, multiple-choice questions."},
   // Agents
   {n:"test-runner",c:"Agents",k:"agent",d:"Runs the smallest relevant tests and reports ONLY failures + a one-line fix hypothesis. Token-frugal."},
   {n:"code-reviewer",c:"Agents",k:"agent",d:"Quality, security and maintainability review right after code is written or changed."},
@@ -150,7 +202,7 @@ const SKILLS = [
   {n:"external-researcher",c:"Agents",k:"agent",d:"Multi-hop external research with evidence synthesis for complex investigations."},
 ];
 
-const CATS = ["All","Context & Planning","Thinking & Prompting","Orchestration","Skill Infra & Eval","Research","Study Artifacts","Agents"];
+const CATS = ["All","Context & Planning","Thinking & Prompting","Orchestration","Skill Infra & Eval","Research","Study & Reading","Agents","Neurodivergent"];
 let activeCat = "All", query = "";
 
 const grid = document.getElementById('grid');
@@ -159,10 +211,13 @@ const countEl = document.getElementById('count');
 const emptyEl = document.getElementById('empty');
 
 function install(s){
-  return s.k === 'agent' ? `cp plugins/team/agents/${s.n}.md ~/.claude/agents/`
-                         : `cp -r plugins/team/skills/${s.n} ~/.claude/skills/`;
+  const base = `plugins/${s.p || 'team'}`;
+  if (s.k === 'agent')   return `cp ${base}/agents/${s.n}.md ~/.claude/agents/`;
+  if (s.k === 'command') return `cp ${base}/commands/${s.n}.md ~/.claude/commands/`;
+  if (s.k === 'style')   return `cp ${base}/output-styles/${s.n}.md ~/.claude/output-styles/`;
+  return `cp -r ${base}/skills/${s.n} ~/.claude/skills/`;
 }
-function esc(t){ return t.replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])); }
+function esc(t){ return t.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
 
 function cardHTML(s){
   const s3 = s.s3 ? `<div class="s3"><label for="s3in">Your S3 bucket (org-owned) — updates the export below</label>
@@ -175,6 +230,7 @@ function cardHTML(s){
     <span class="tag">${esc(s.c)}</span>
     <h3>${esc(s.n)}<span class="k">${s.k}</span></h3>
     <p>${esc(s.d)}</p>
+    <span class="plug">plugin: ${s.p || 'team'}</span>
     <div class="snippet"><code>${esc(install(s))}</code><button class="copy" data-copy-text="${esc(install(s))}">Copy</button></div>
     ${s3}${judge}
   </article>`;
@@ -186,20 +242,20 @@ function render(){
     (!query || s.n.toLowerCase().includes(query) || s.d.toLowerCase().includes(query)));
   grid.innerHTML = items.map(cardHTML).join('');
   emptyEl.hidden = items.length>0;
-  countEl.textContent = `${items.length} of ${SKILLS.length} — ${SKILLS.filter(s=>s.k==='skill').length} skills, ${SKILLS.filter(s=>s.k==='agent').length} agents`;
-  wireCopy(); wireS3();
+  const n = k => SKILLS.filter(s=>s.k===k).length;
+  countEl.textContent = `${items.length} of ${SKILLS.length} — ${n('skill')} skills, ${n('agent')} agents, ${n('command')} commands, ${n('style')} output style`;
+  wireS3();
 }
 
-function wireCopy(){
-  grid.querySelectorAll('.copy').forEach(b=>{
-    b.addEventListener('click', async ()=>{
-      const text = b.dataset.copyText ?? grid.querySelector(b.dataset.copy)?.textContent ?? '';
-      try{ await navigator.clipboard.writeText(text); }catch(e){}
-      const old=b.textContent; b.textContent='Copied ✓'; b.classList.add('ok');
-      setTimeout(()=>{ b.textContent=old; b.classList.remove('ok'); }, 1400);
-    });
-  });
-}
+// one delegated handler: grid cards are re-rendered, the install panel is static
+document.addEventListener('click', async e=>{
+  const b = e.target.closest('.copy'); if(!b) return;
+  const text = b.dataset.copyText ?? (b.dataset.copy ? document.querySelector(b.dataset.copy) : b.previousElementSibling)?.textContent ?? '';
+  let ok = true;
+  try{ await navigator.clipboard.writeText(text); }catch(err){ ok = false; }
+  const old=b.textContent; b.textContent= ok ? 'Copied ✓' : 'Select and copy'; b.classList.toggle('ok', ok);
+  setTimeout(()=>{ b.textContent=old; b.classList.remove('ok'); }, 1400);
+});
 function wireS3(){
   const inp=grid.querySelector('#s3in'), out=grid.querySelector('#s3out');
   if(!inp||!out) return;

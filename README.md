@@ -1,5 +1,11 @@
 # team-claude-skills
 
+> **TL;DR.** Two Claude Code plugins in one marketplace. `team` has 30 workflow skills and 4 agents
+> that help you spend tokens well and finish tasks without starting new ones. `neurodivergent` is an
+> opt-in set of comfort tools for ADHD, autistic and dyslexic users. Install:
+> `/plugin marketplace add onion-42/nadja-public-claude-skills`, then `/plugin install team@team-claude-skills`.
+> Browse the cards and a live demo deck on the [site](https://onion-42.github.io/nadja-public-claude-skills/site/).
+
 A curated, **team-usable** bundle of Claude Code skills and subagents focused on one goal:
 **spend tokens well — finish tasks without spawning new ones.** Better planning, durable
 handoffs, cheap-but-correct model routing, evidence-grounded research, and study artifacts
@@ -14,10 +20,12 @@ It is a Claude Code **plugin marketplace** with two plugins:
 - **`neurodivergent`** (`plugins/neurodivergent/`) — opt-in comfort tools for ADHD, autistic
   and dyslexic users (see below). It works best alongside `team`.
 
-## What's inside
+## ⟐ What's inside
 
-Browse the **card site** at [`site/index.html`](site/index.html) (open it in a browser) for
-a filterable view. In short:
+Browse the **card site** ([online](https://onion-42.github.io/nadja-public-claude-skills/site/),
+or open [`site/index.html`](site/index.html) locally) for a filterable view with copy-paste
+install commands and a live demo deck: a study deck on self-supervised pathology foundation models
+(DINOv2 to Virchow) built with `research-anki-mindmap`. In short:
 
 **Token economy & context**
 - `handoff` — package live task state into one resumable doc before a boundary
@@ -57,7 +65,7 @@ a filterable view. In short:
 - `test-runner` (failures-only, token-frugal), `code-reviewer`, `security-reviewer`,
   `external-researcher`
 
-## The `neurodivergent` plugin
+## ⟐ The `neurodivergent` plugin
 
 Tools that make the output do the remembering. They are offered for comfort and choice; none of
 them claims to improve anyone's performance.
@@ -76,15 +84,17 @@ them claims to improve anyone's performance.
 Already in `team` and useful here too: `handoff`, `roasting`, `step-back`, `time-estimate`,
 `easy-read`. Credits for adapted material: [`plugins/neurodivergent/CREDITS.md`](plugins/neurodivergent/CREDITS.md).
 
-## Install
+## ⟐ Install
 
-Unzip the bundle (or clone it) anywhere, then in Claude Code:
+In Claude Code:
 
 ```
-/plugin marketplace add /path/to/team-claude-skills
+/plugin marketplace add onion-42/nadja-public-claude-skills
 /plugin install team@team-claude-skills
 /plugin install neurodivergent@team-claude-skills   # optional
 ```
+
+From a local clone, use `/plugin marketplace add /path/to/clone` instead.
 
 To pick the output style after installing `neurodivergent`: `/config` → Output style → `nd-friendly`.
 
@@ -99,7 +109,7 @@ Some skills ship a helper script (`agent_bus.py`, `build.py`, `eval_rag.py`); it
 skill's own directory, wherever the skill is installed. Python skills that need a library say so in their SKILL.md
 (`genanki`, `markmap`, `ragas`, `boto3`); install only what you use.
 
-## Two things you must set yourself
+## ⟐ Two things you must set yourself
 
 - **`agent-bus` S3 path** — cross-machine sync needs a bucket *your org owns*:
   `export AGENT_BUS_S3="s3://YOUR-BUCKET/YOUR-PREFIX/agent-bus/"`. Unset = local-only, clean
@@ -108,7 +118,7 @@ skill's own directory, wherever the skill is installed. Python skills that need 
   permits (`RAG_EVAL_PROVIDER` + that vendor's key). The harness refuses to run otherwise,
   so the choice is always explicit.
 
-## Testing
+## ⟐ Testing
 
 The net-new and modified skills (`anki-mindmap` and its two wrappers, `rag-eval`, `brainstorm`,
 `agent-bus`, `model-route`, and the `test-runner` agent) are exercised with
@@ -116,7 +126,15 @@ The net-new and modified skills (`anki-mindmap` and its two wrappers, `rag-eval`
 `python -m pytest plugins/team/skills -q`. Adopted skills carry their upstream tests
 and are smoke-checked here for valid frontmatter and trigger descriptions.
 
-## See also
+## ⟐ A note on evidence
+
+The `neurodivergent` plugin and `easy-read` are offered for comfort and choice. Studies of
+dyslexia fonts found no reliable gain in reading speed or accuracy (e.g. Wery & Diliberto 2017;
+Kuster et al. 2018), and the evidence on bionic-style reading is thin. Some readers find these
+settings more comfortable; nothing here claims to improve anyone's performance. `nopanic` is not
+therapy and starts with a safety check that points to real help.
+
+## ⟐ See also
 
 Other people's work in the same space (not included here):
 
@@ -128,3 +146,9 @@ Other people's work in the same space (not included here):
 - [JackReis/neurodivergent-visual-org](https://github.com/JackReis/neurodivergent-visual-org)
 - [thiagoigfraga/active-reading-adhd-audhd](https://github.com/thiagoigfraga/active-reading-adhd-audhd)
 - [text-vide](https://github.com/Gumball12/text-vide) — bionic-reading-style text transform
+
+## ⟐ Contributing and licence
+
+Working on the repo (human or agent): read [`AGENTS.md`](AGENTS.md). Changes are listed in
+[`CHANGELOG.md`](CHANGELOG.md). MIT licence ([`LICENSE`](LICENSE)); adopted skills that carry their
+own licence keep it.

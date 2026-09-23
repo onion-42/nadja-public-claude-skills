@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pathology-foundation-models — mind-map</title>
+<style>
+  :root { --paper:#faf6ef; --surface:#fffdf8; --ink:#2b2622; --ink-soft:#6b6259;
+    --accent:#b0603f; --code-bg:#f0e9dd; --border:#e5dccb; --shadow:rgba(43,38,34,.12); color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --paper:#211d1a; --surface:#2a2521; --ink:#efe7db; --ink-soft:#b6ab9c;
+    --accent:#e08a63; --code-bg:#2f2823; --border:#3d352d; --shadow:rgba(0,0,0,.45); color-scheme: dark; } }
+  :root[data-theme="dark"] { --paper:#211d1a; --surface:#2a2521; --ink:#efe7db;
+    --ink-soft:#b6ab9c; --accent:#e08a63; --code-bg:#2f2823; --border:#3d352d; --shadow:rgba(0,0,0,.45); color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,"Segoe UI","Inter",system-ui,sans-serif; }
+  body { display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+  code, .chip { font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace; }
+  .mm-header { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 24px;
+    padding:18px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .mm-title { margin:0; font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    font-size:clamp(1.25rem, 2.6vw, 1.7rem); font-weight:600; line-height:1.2; }
+  .mm-meta { margin:4px 0 0; color:var(--ink-soft); font-size:.88rem; }
+  .mm-legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin:0; padding:0; list-style:none;
+    font-size:.85rem; color:var(--ink-soft); }
+  .mm-legend li { display:flex; align-items:center; gap:6px; }
+  .mm-swatch { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .mm-tools { margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; }
+  button { font:inherit; font-size:.85rem; color:var(--ink); background:var(--paper);
+    border:1px solid var(--border); border-radius:8px; padding:6px 11px; cursor:pointer; min-height:34px; }
+  button:hover { border-color:var(--accent); }
+  button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  main { flex:1; min-height:0; position:relative; }
+  svg#mm { width:100%; height:100%; display:block; touch-action:none; }
+  /* id-level specificity: markmap injects its own .markmap defaults later in the page */
+  svg#mm.markmap { --markmap-text-color: var(--ink); --markmap-code-bg: var(--code-bg);
+    --markmap-code-color: var(--ink-soft); --markmap-font: 500 15px/1.4 -apple-system,"Segoe UI","Inter",system-ui,sans-serif; }
+  svg#mm .markmap-foreign { color:var(--ink); cursor:pointer; }
+  svg#mm .markmap-foreign code { font-size:.66em; font-weight:500; background:var(--code-bg);
+    color:var(--ink-soft); padding:0 5px; border-radius:5px; border:1px solid var(--border);
+    vertical-align:.15em; }
+  svg#mm .markmap-node[data-depth="1"] .markmap-foreign {
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif; font-size:19px; font-weight:600; }
+  svg#mm .markmap-node[data-depth="2"] .markmap-foreign { font-weight:600; }
+  .mm-fallback { position:absolute; inset:0; display:none; padding:24px 16px; color:var(--ink-soft); }
+  #mm-details { position:absolute; top:12px; right:12px; bottom:12px; width:min(360px, calc(100% - 24px));
+    overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:0 10px 30px var(--shadow); padding:18px 18px 22px; }
+  #mm-details[hidden] { display:none; }
+  #mm-details h2 { margin:0 32px 6px 0; font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    font-size:1.2rem; line-height:1.3; }
+  #mm-details .grp { margin:0 0 12px; color:var(--ink-soft); font-size:.82rem; display:flex; align-items:center; gap:6px; }
+  #mm-details p.sum { margin:0 0 14px; line-height:1.6; }
+  #mm-details .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { font-size:.78rem; background:var(--code-bg); color:var(--accent); border:1px solid var(--border);
+    border-radius:6px; padding:2px 7px; }
+  .chip.ev { color:var(--ink-soft); }
+  #mm-close { position:absolute; top:10px; right:10px; min-height:30px; padding:2px 9px; }
+  @media (max-width: 640px) {
+    .mm-tools { margin-left:0; }
+    #mm-details { top:auto; left:0; right:0; bottom:0; width:100%; max-height:55%;
+      border-radius:16px 16px 0 0; border-bottom:0; }
+  }
+</style>
+</head><body>
+<header class="mm-header">
+  <div>
+    <h1 class="mm-title">pathology-foundation-models</h1>
+    <p class="mm-meta">16 cards · DINOv2 (arXiv:2304.07193v2) and Virchow (arXiv:2309.07778v6), read in full, 2026-09-23</p>
+  </div>
+  <ul class="mm-legend"><li><span class="mm-swatch" style="background:#b8683f"></span>Concepts</li><li><span class="mm-swatch" style="background:#4f8a76"></span>Pathology</li><li><span class="mm-swatch" style="background:#b07f22"></span>Methods</li><li><span class="mm-swatch" style="background:#6a82b0"></span>Models</li><li><span class="mm-swatch" style="background:#a8628a"></span>Evaluation</li></ul>
+  <div class="mm-tools">
+    <button id="mm-fit" type="button">Fit</button>
+    <button id="mm-expand" type="button">Expand all</button>
+    <button id="mm-collapse" type="button">Level 2</button>
+    <button id="mm-theme" type="button" aria-label="Toggle light or dark theme">Theme</button>
+  </div>
+</header>
+<main>
+  <svg id="mm" class="markmap"></svg>
+  <aside id="mm-details" hidden aria-live="polite">
+    <button id="mm-close" type="button" aria-label="Close details">×</button>
+    <h2 id="mm-d-title"></h2>
+    <p class="grp" id="mm-d-group"></p>
+    <p class="sum" id="mm-d-sum"></p>
+    <div class="chips" id="mm-d-chips"></div>
+  </aside>
+  <p class="mm-fallback" id="mm-fallback">The map library could not load (offline or blocked CDN).
+  Open the <code>.md</code> file next to this page at markmap.js.org.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.18/dist/browser/index.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18/dist/browser/index.js"></script>
+<script>
+const MD = "---\nmarkmap:\n  colorFreezeLevel: 2\n  initialExpandLevel: 3\n  maxWidth: 320\n  color: [\"#b8683f\", \"#4f8a76\", \"#b07f22\", \"#6a82b0\", \"#a8628a\", \"#7c8f3e\"]\n---\n\n# pathology-foundation-models\n\n  - Self-supervised general-purpose features `shown`\n    - Teacher-student self-distillation (DINO loss) `shown`\n      - Masked image modelling (iBOT patch loss) `shown`\n        - In-domain SSL at million-slide scale `shown`\n          - Tile-level embeddings `shown`\n            - Linear probing on tile benchmarks `shown`\n            - Multiple-instance aggregation `shown`\n              - Pan-cancer detection `shown`\n                - Rare-cancer generalization `shown`\n                - External and out-of-distribution robustness `shown`\n              - Biomarker prediction from H\\&E `shown`\n      - KoLeo feature-spreading regularizer `shown`\n      - Natural-image augmentations vs pathology `plausible`\n    - Automatic data curation by retrieval `shown`\n  - Whole-slide images (WSI) `shown`\n    - Foreground tissue tiling `shown`\n";
+const INFO = {"ssl-frozen-features": {"title": "Self-supervised general-purpose features", "group": "Concepts", "color": "#b8683f", "summary": "A vision foundation model is pretrained without labels. Its goal is to produce features that work out of the box, with the backbone frozen and no finetuning, across many image distributions and tasks, both at image level (classification) and at pixel level (segmentation). DINOv2 argues for learning from images alone rather than from captions, because captions only approximate what is in an image and they require aligned image-text corpora. Its central claim is that existing discriminative self-supervised methods can produce such features if they are trained on enough curated, diverse data.", "anchors": ["arXiv:2304.07193 Abstract", "arXiv:2304.07193 §1"], "evidence": "shown"}, "whole-slide-image": {"title": "Whole-slide images (WSI)", "group": "Pathology", "color": "#4f8a76", "summary": "In digital pathology, a glass slide of tissue stained with hematoxylin and eosin (H&E) is scanned into a whole-slide image. H&E stains nuclei blue and the extracellular matrix and cytoplasm pink. WSIs are gigapixel-sized, so they cannot be fed to a ViT directly. The Virchow training slides were scanned at 20x magnification (0.5 microns per pixel) on Leica scanners. The data has a clinical hierarchy of patient, case, specimen, block and slide, and labels such as cancer or no cancer usually exist only at the specimen or case level, not per pixel.", "anchors": ["arXiv:2309.07778v6 §4.1", "arXiv:2309.07778v6 §1"], "evidence": "shown"}, "teacher-student-self-distillation": {"title": "Teacher-student self-distillation (DINO loss)", "group": "Methods", "color": "#b07f22", "summary": "A student and a teacher ViT see different crops of the same image. Each passes its class token through an MLP head that outputs 'prototype scores', and a softmax turns these into probabilities. The loss is the cross-entropy -sum p_t log p_s between teacher and student outputs. The teacher is not trained by gradients: it is an exponential moving average (EMA) of past student weights. Its outputs are centered, and DINOv2 replaces moving-average centering with 3 iterations of Sinkhorn-Knopp normalization. DINOv2 also uses separate (untied) heads for the image-level and patch-level losses, because at scale sharing them performed worse. Virchow's summary describes the student as information-limited, because it only sees noisy views, and matching an EMA teacher as similar to ensembling over past students.", "anchors": ["arXiv:2304.07193 §4", "arXiv:2309.07778v6 §4.2"], "evidence": "shown"}, "masked-image-modelling": {"title": "Masked image modelling (iBOT patch loss)", "group": "Methods", "color": "#b07f22", "summary": "Some input patches are masked for the student but left visible for the teacher. The student's iBOT head, applied at the masked positions, must match the teacher's softmax over the corresponding visible patch tokens. This is the same distillation idea applied per patch instead of per image. In DINOv2's ablation (Table 3b), removing this term drops ADE-20k linear segmentation from 47.1 to 44.2 mIoU and ImageNet-1k linear accuracy from 85.8 to 85.3. Oxford-M retrieval is essentially unchanged (63.9 with the term vs 64.3 without). Virchow keeps this patch-token objective.", "anchors": ["arXiv:2304.07193 §4", "arXiv:2304.07193 §6.4 Table 3b"], "evidence": "shown"}, "koleo-regularizer": {"title": "KoLeo feature-spreading regularizer", "group": "Methods", "color": "#b07f22", "summary": "KoLeo comes from the Kozachenko-Leonenko differential entropy estimator. For a batch of L2-normalized features, it minimizes -(1/n) sum log d_i, where d_i is each feature's distance to its nearest neighbour in the batch. This pushes features to spread uniformly. In DINOv2 Table 3a, adding KoLeo raises Oxford-M retrieval mAP from 55.6 to 63.9, while ImageNet-1k linear accuracy (85.3 to 85.8) and ADE-20k (47.2 vs 47.1) barely change. In the recipe build-up of §6.1, adding KoLeo gave +2.3 on ImageNet-1k k-NN. The Virchow discussion refers to this term as DINOv2's contrastive regularizer.", "anchors": ["arXiv:2304.07193 §4", "arXiv:2304.07193 §6.4 Table 3a", "arXiv:2304.07193 §6.1"], "evidence": "shown"}, "curated-data-retrieval": {"title": "Automatic data curation by retrieval", "group": "Methods", "color": "#b07f22", "summary": "DINOv2 builds LVD-142M without text or metadata. It starts from 1.2B unique web images, removes near-duplicates with a copy-detection pipeline, embeds everything with a self-supervised ViT-H/16, runs k-means, and retrieves uncurated images close to images in curated seed datasets such as ImageNet-22k and Google Landmarks, typically 4 nearest neighbours per query. In Table 2 (ViT-g/14, shorter schedule), training on LVD-142M beats 142M randomly sampled uncurated images on ImageNet-1k (85.8 vs 83.3) and Oxford-M (64.6 vs 54.3). The uncurated set is slightly better on ADE-20k segmentation (48.5 vs 47.7). Virchow did not use this retrieval curation. It sampled foreground tissue tiles from all its slides.", "anchors": ["arXiv:2304.07193 §3", "arXiv:2304.07193 Appendix A.4", "arXiv:2304.07193 §6.2 Table 2"], "evidence": "shown"}, "foreground-tiling": {"title": "Foreground tissue tiling", "group": "Pathology", "color": "#4f8a76", "summary": "Virchow detects tissue by downsampling each slide 16x and applying fixed hue, saturation and value thresholds (H in [90,180], S in [8,255], V in [103,255]). It then collects all non-overlapping tiles with at least 25% tissue by area. The embedding section uses 224 x 224 input tiles. §4.1 prints '224 x 244', which is most likely a typo. During pretraining, each GPU's minibatch is one randomly chosen slide with 256 foreground tiles from it. The tiles are further cropped into global and local views for the DINOv2 loss (Fig. 1e).", "anchors": ["arXiv:2309.07778v6 §4.1", "arXiv:2309.07778v6 §4.3"], "evidence": "shown"}, "million-slide-pretraining": {"title": "In-domain SSL at million-slide scale", "group": "Models", "color": "#6a82b0", "summary": "Virchow applies the DINOv2 recipe, mostly with default hyperparameters, to pathology. It trains a ViT-H/14 with 632M parameters on 1,488,550 H&E WSIs from 119,629 patients at a single center (MSKCC), covering 17 high-level tissue groups. The reported changes from DINOv2 defaults are a 495,000-iteration learning-rate warmup, a teacher temperature schedule from 0.04 to 0.07 over 186,000 iterations, 131,072 prototypes, AdamW, and float16. The authors describe the data as over three thousand times ImageNet by pixel count. They list as limitations that the data comes from one center with limited scanner types, and that which self-supervised algorithm is best for pathology remains open.", "anchors": ["arXiv:2309.07778v6 Abstract", "arXiv:2309.07778v6 §4.1", "arXiv:2309.07778v6 §4.2", "arXiv:2309.07778v6 §3"], "evidence": "shown"}, "pathology-augmentation-mismatch": {"title": "Natural-image augmentations vs pathology", "group": "Pathology", "color": "#4f8a76", "summary": "Self-supervised recipes inherit augmentations from natural images: color jitter, and random crop-and-resize. The Virchow discussion notes that WSIs are stored at fixed magnifications, so object scale varies far less than in natural photos, which calls aggressive resize-crops into question. Stain and scanner differences also produce color variation that does not reflect biology, and other works found color augmentation helpful. Virchow itself used natural-image cropping parameters, and the authors state that the impact of this choice is unclear. They also cite prior work (Kang et al. 2023) that found no clear best of four self-supervised algorithms trained on 37 thousand WSIs, with DINO most often best.", "anchors": ["arXiv:2309.07778v6 §3"], "evidence": "plausible"}, "tile-embedding": {"title": "Tile-level embeddings", "group": "Concepts", "color": "#b8683f", "summary": "The frozen Virchow encoder turns each 224 x 224 tile into one vector. That vector concatenates the class token with the mean of the other 256 output tokens, giving 2 x 1,280 = 2,560 dimensions. Baselines are embedded differently: Phikon uses only its class token, and CTransPath, which has no class token, uses the mean of all tokens. All downstream tasks in the paper consume these frozen tile embeddings. The foundation model is not finetuned for them.", "anchors": ["arXiv:2309.07778v6 §4.3"], "evidence": "shown"}, "linear-probing-eval": {"title": "Linear probing on tile benchmarks", "group": "Evaluation", "color": "#a8628a", "summary": "To judge embedding quality directly, Virchow trains a linear classifier on frozen, z-scored tile embeddings: SGD, batch size 4,096, cosine learning rate from 0.01 to 0, 12,500 iterations, no augmentation. All models use the same splits. The benchmarks are an internal in-distribution set (PanMSK, 1,196,171 tiles across 17 tissue groups) and public out-of-distribution sets: PCam, WILDS, CRC with and without stain normalization, and MHIST. Baselines include Phikon, CTransPath, DINO p=8, PLIP, and NatImg, a 1.1B-parameter DINOv2 model trained on natural images. The paper reports that Virchow matches or surpasses the baselines on all these datasets (Fig. 3, Table A4). The authors read this as evidence that in-domain pathology data beats even a strong natural-image model.", "anchors": ["arXiv:2309.07778v6 §2.3", "arXiv:2309.07778v6 §4.6.1", "arXiv:2309.07778v6 §4.6.2 Table 3", "arXiv:2309.07778v6 §3"], "evidence": "shown"}, "multiple-instance-aggregation": {"title": "Multiple-instance aggregation", "group": "Methods", "color": "#b07f22", "summary": "Clinical labels exist per specimen, extracted from pathology reports by a rule-based NLP system. The inputs, however, are thousands of tile embeddings. Virchow therefore trains a separate aggregator (Agata) with weakly supervised multiple-instance learning (MIL): the bag of tiles gets one label. Because backpropagating through every tile of a specimen is too memory-intensive, training backpropagates only through the slide with the highest predicted cancer probability in each specimen. The training and validation set is 177,742 slides from 47,839 specimens. The authors state that a deep investigation of aggregator design is beyond scope. So every slide-level result reflects the encoder and this particular aggregator together.", "anchors": ["arXiv:2309.07778v6 §4.4", "arXiv:2309.07778v6 §3"], "evidence": "shown"}, "pan-cancer-detection": {"title": "Pan-cancer detection", "group": "Evaluation", "color": "#a8628a", "summary": "One aggregator is trained to detect cancer in any tissue, rather than one model per organ. The test set is 23,408 slides from 6,372 specimens across 17 tissue types, and no test patient was seen in training. Specimen-level AUROC is 0.949 with Virchow embeddings, 0.930 with Phikon, and 0.904 with CTransPath, and the paper states these differ significantly (p << 0.001, DeLong test). Per cancer type, Phikon was statistically tied with Virchow on 5 of 10 common and 4 of 7 rare types, though its AUROC was numerically lower in all but one case.", "anchors": ["arXiv:2309.07778v6 §2.1", "arXiv:2309.07778v6 §4.4"], "evidence": "shown"}, "rare-cancer-generalization": {"title": "Rare-cancer generalization", "group": "Evaluation", "color": "#a8628a", "summary": "Following the NCI definition (fewer than 15 cases per 100,000 people per year in the US), Virchow splits test cancers into 10 common and 7 rare types. The rare test set is 8,798 slides from 2,602 specimens. Virchow reaches 0.937 AUROC on rare cancers vs 0.949 overall. Performance is uneven: cervix 0.875 (Phikon 0.810, CTransPath 0.753), bone 0.841 (0.822, 0.728) and brain 0.954 (0.898, 0.795). The paper motivates this analysis with the hypothesis that more pretraining data helps data-constrained tasks. The comparison, however, changes model size, data and training recipe all at once, so it does not isolate data scale. One inconsistency: §4.4 lists six rare tissues and omits bone, while the results report 7 rare types including bone.", "anchors": ["arXiv:2309.07778v6 §2.1", "arXiv:2309.07778v6 §4.4", "arXiv:2309.07778v6 Abstract"], "evidence": "shown"}, "ood-robustness": {"title": "External and out-of-distribution robustness", "group": "Evaluation", "color": "#a8628a", "summary": "About half of the test specimens (7,467 slides, 3,197 specimens) were sent to MSKCC from external institutions. In addition, 18.9% of test specimens come from tissues not seen in training. For Virchow, internal AUROC is 0.938, and on external data it drops by 0.006; for Phikon the drop is 0.008, and for CTransPath 0.016. Both the foundation model and the aggregator were trained only on MSKCC data. The authors list single-center data with limited scanner types as a limitation. The passages read do not say where the external slides were digitized, so scanner shift may be under-tested.", "anchors": ["arXiv:2309.07778v6 §2.1", "arXiv:2309.07778v6 §4.4", "arXiv:2309.07778v6 §3"], "evidence": "shown"}, "biomarker-prediction": {"title": "Biomarker prediction from H&E", "group": "Evaluation", "color": "#a8628a", "summary": "The same MIL aggregator is trained per target to predict molecular status from routine H&E slides: colon MSI, bladder FGFR and lung EGFR. Labels come from MSK-IMPACT targeted sequencing of the same tissue blocks. In Table 1, case-level AUROCs with 95% bootstrap intervals are, for Virchow / Phikon / CTransPath: colon MSI 0.972 / 0.957 / 0.970, bladder FGFR 0.902 / 0.886 / 0.882, lung EGFR 0.853 / 0.821 / 0.807. The confidence intervals overlap heavily across backbones. §4.5 says the best aggregator was selected on validation AUROC. It also says a learning-rate grid of three values was run and 'the best observed test AUROC' was reported, which is test-set selection and makes all three backbones' numbers optimistic.", "anchors": ["arXiv:2309.07778v6 §2.2 Table 1", "arXiv:2309.07778v6 §4.5"], "evidence": "shown"}};  // node id -> {title, group, color, summary, anchors, evidence}
+const ORDER = [null, "ssl-frozen-features", "teacher-student-self-distillation", "masked-image-modelling", "million-slide-pretraining", "tile-embedding", "linear-probing-eval", "multiple-instance-aggregation", "pan-cancer-detection", "rare-cancer-generalization", "ood-robustness", "biomarker-prediction", "koleo-regularizer", "pathology-augmentation-mismatch", "curated-data-retrieval", "whole-slide-image", "foreground-tiling"];  // node id per tree node, depth-first (root = null)
+const ROOT_COLOR = "#8a7f73";
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const root = document.documentElement;
+  try { const t = localStorage.getItem("mm-theme"); if (t) root.dataset.theme = t; } catch (e) {}
+  $("mm-theme").addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("mm-theme", root.dataset.theme); } catch (e) {}
+  });
+  if (!window.markmap || !window.markmap.Transformer || !window.markmap.Markmap) {
+    $("mm-fallback").style.display = "block";
+    return;
+  }
+  const { Transformer, Markmap, deriveOptions } = window.markmap;
+  const { root: data, frontmatter } = new Transformer().transform(MD);
+  const walk = (n, depth, f) => { f(n, depth); (n.children || []).forEach(c => walk(c, depth + 1, f)); };
+  // Tag each tree node with its graph id by position: build.py emitted the outline in this
+  // same depth-first order, so there is no fragile matching against rendered label text.
+  let i = 0;
+  walk(data, 0, (n) => { n.payload = Object.assign({}, n.payload, { nid: ORDER[i++] }); });
+  const infoOf = (node) => INFO[(node && node.payload && node.payload.nid) || ""];
+  const opts = deriveOptions((frontmatter && frontmatter.markmap) || {});
+  opts.color = (node) => (infoOf(node) || {}).color || ROOT_COLOR;
+  const mm = Markmap.create("svg#mm", opts, data);
+  // Mirror markmap's own toggleNode: edit payload.fold on the live tree, then renderData().
+  // setData() would re-run _initializeData and re-fold everything past initialExpandLevel.
+  const foldFrom = async (level) => {
+    walk(mm.state.data, 0, (n, d) => { n.payload = Object.assign({}, n.payload,
+      { fold: level !== null && d >= level && (n.children || []).length ? 1 : 0 }); });
+    await mm.renderData();
+    await mm.fit();
+  };
+  $("mm-expand").addEventListener("click", () => foldFrom(null));
+  $("mm-collapse").addEventListener("click", () => foldFrom(2));
+  $("mm-fit").addEventListener("click", () => mm.fit());
+
+  const panel = $("mm-details");
+  const show = (info) => {
+    $("mm-d-title").textContent = info.title;
+    $("mm-d-group").innerHTML = "";
+    if (info.group) {
+      const sw = document.createElement("span");
+      sw.className = "mm-swatch"; sw.style.background = info.color;
+      $("mm-d-group").append(sw, document.createTextNode(info.group));
+    }
+    $("mm-d-sum").textContent = info.summary || "";
+    const chips = $("mm-d-chips"); chips.innerHTML = "";
+    (info.anchors || []).forEach(a => { const c = document.createElement("span");
+      c.className = "chip"; c.textContent = a; chips.append(c); });
+    if (info.evidence) { const c = document.createElement("span");
+      c.className = "chip ev"; c.textContent = "evidence: " + info.evidence; chips.append(c); }
+    panel.hidden = false;
+  };
+  const hide = () => { panel.hidden = true; };
+  $("mm-close").addEventListener("click", hide);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  // Clicking a label opens details; the circle keeps markmap's own fold toggle.
+  $("mm").addEventListener("click", (e) => {
+    const fo = e.target.closest(".markmap-foreign");
+    const g = fo && fo.closest(".markmap-node");
+    const info = g && infoOf(g.__data__);
+    if (info) show(info);
+  });
+})();
+</script>
+<script>/* easy-read: a reading-comfort panel for any HTML page. Vanilla JS, no dependencies.
+ * Font (system / OpenDyslexic / Lexiad if installed), text size, line + letter spacing,
+ * calm colour schemes, bionic-style word emphasis, and a focus highlight that follows the
+ * pointer or Alt+Arrow keys. Settings persist in localStorage when it is available.
+ * It never touches text inside <svg> (charts, mind-maps keep their layout).
+ * Comfort and choice, not a treatment: see README for the evidence note. MIT. */
+(function () {
+  "use strict";
+  if (window.__easyRead) return;
+  window.__easyRead = true;
+  var KEY = "easy-read", doc = document, root = doc.documentElement;
+  var DEFAULTS = { font: "", size: 1, lh: 0, ls: 0, scheme: "", bionic: false, focus: false, hl: "#f2c14e" };
+  var FONTS = { "": "Page font", system: "System sans", od: "OpenDyslexic", lexiad: "Lexiad (if installed)" };
+  var SCHEMES = { "": "Page colours", cream: "Cream", grey: "Soft grey", dark: "Calm dark" };
+  var SKIP = "svg, script, style, code, pre, kbd, samp, textarea, input, select, .er-ui";
+  var BLOCKS = "p, li, h1, h2, h3, h4, h5, h6, dd, dt, td, th, blockquote, figcaption, .er-block";
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var s = load();
+
+  function load() {
+    try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || "{}")); }
+    catch (e) { return Object.assign({}, DEFAULTS); }
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  var css = doc.createElement("style");
+  css.textContent = [
+    '@font-face{font-family:"ER OpenDyslexic";font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2) format("woff2")}',
+    '@font-face{font-family:"ER OpenDyslexic";font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2) format("woff2")}',
+    '@font-face{font-family:"ER Lexiad";src:local("Lexiad"),local("03A_test")}',
+    ".er-ui{--er-p:#fffdf8;--er-i:#2b2622;--er-s:#6b6259;--er-b:#e5dccb;--er-a:#b0603f;font:14px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--er-i)}",
+    "@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .er-ui{--er-p:#2a2521;--er-i:#efe7db;--er-s:#b6ab9c;--er-b:#3d352d;--er-a:#e08a63}}",
+    ":root[data-theme=dark] .er-ui{--er-p:#2a2521;--er-i:#efe7db;--er-s:#b6ab9c;--er-b:#3d352d;--er-a:#e08a63}",
+    ".er-ui button,.er-ui select{font:inherit;color:inherit;background:var(--er-p);border:1px solid var(--er-b);border-radius:8px;padding:6px 10px;min-height:34px;cursor:pointer}",
+    ".er-ui :focus-visible{outline:2px solid var(--er-a);outline-offset:2px}",
+    "#er-toggle{position:fixed;left:16px;bottom:16px;z-index:2147483000;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.18)}",
+    "#er-panel{position:fixed;left:16px;bottom:62px;z-index:2147483000;width:min(300px,calc(100vw - 32px));max-height:calc(100dvh - 80px);overflow:auto;background:var(--er-p);border:1px solid var(--er-b);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.22);display:grid;gap:10px}",
+    "#er-panel[hidden]{display:none}",
+    "#er-panel label{display:grid;gap:4px;color:var(--er-s);font-size:12px}",
+    "#er-panel .er-row{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--er-i);font-size:14px}",
+    "#er-panel input[type=range]{width:100%;accent-color:var(--er-a)}",
+    "html.er-font body :not(" + SKIP + "):not(svg *){font-family:var(--er-font)!important}",
+    "html.er-lh body :not(" + SKIP + "):not(svg *){line-height:var(--er-lh)!important}",
+    "html.er-ls body :not(" + SKIP + "):not(svg *){letter-spacing:var(--er-ls)!important;word-spacing:calc(var(--er-ls) * 2)!important}",
+    "html.er-scheme body{background:var(--er-bg)!important;color:var(--er-fg)!important}",
+    "html.er-scheme body :not(" + SKIP + "):not(svg *){color:inherit!important;background-color:transparent!important;border-color:var(--er-line)!important}",
+    ".er-b{font-weight:700}",
+    ".er-focus{background:color-mix(in srgb,var(--er-hl) 32%,transparent)!important;border-radius:4px;box-shadow:0 0 0 3px color-mix(in srgb,var(--er-hl) 32%,transparent)}"
+  ].join("\n");
+  doc.head.appendChild(css);
+
+  var FONT_STACK = { system: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+    od: '"ER OpenDyslexic",system-ui,sans-serif', lexiad: '"ER Lexiad","Lexiad","03A_test",system-ui,sans-serif' };
+  var SCHEME_VARS = { cream: ["#f8f1e3", "#2e2a24", "#e3d8c3"], grey: ["#e9eaec", "#26282b", "#cfd2d6"],
+    dark: ["#1d1f22", "#e4e1da", "#3a3d42"] };
+
+  /* text size: scale each text block from its own original size (no compounding) */
+  function textBlocks() {
+    return Array.prototype.filter.call(doc.body.querySelectorAll(BLOCKS + ", span, a, div, label, button"),
+      function (el) {
+        if (el.closest(SKIP) || el.classList.contains("er-bw")) return false;
+        return Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.nodeValue.trim(); });
+      });
+  }
+  var sized = false;
+  function applySize() {
+    if (s.size === 1 && !sized) return;
+    var els = textBlocks();
+    // read every original size BEFORE writing any, so a nested span never scales twice
+    els.forEach(function (el) { if (!el.dataset.erSize) el.dataset.erSize = parseFloat(getComputedStyle(el).fontSize); });
+    els.forEach(function (el) { el.style.fontSize = s.size === 1 ? "" : (el.dataset.erSize * s.size) + "px"; });
+    sized = true;
+  }
+
+  /* bionic-style emphasis: bold the first ~half of each word; fully reversible */
+  function textNodes() {
+    var out = [], w = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, { acceptNode: function (n) {
+      return n.nodeValue.trim() && !n.parentElement.closest(SKIP + ", .er-bw") ? 1 : 2; } });
+    while (w.nextNode()) out.push(w.currentNode);
+    return out;
+  }
+  function bionicOn() {
+    textNodes().forEach(function (n) {
+      var span = doc.createElement("span"); span.className = "er-bw";
+      n.nodeValue.split(/([\p{L}\p{N}]+)/u).forEach(function (part, i) {
+        if (i % 2 === 0) { if (part) span.appendChild(doc.createTextNode(part)); return; }
+        var k = Math.ceil(part.length / 2), b = doc.createElement("b");
+        b.className = "er-b"; b.textContent = part.slice(0, k);
+        span.appendChild(b); span.appendChild(doc.createTextNode(part.slice(k)));
+      });
+      n.parentNode.replaceChild(span, n);
+    });
+  }
+  function bionicOff() {
+    doc.querySelectorAll(".er-bw").forEach(function (sp) { sp.replaceWith(doc.createTextNode(sp.textContent)); });
+    doc.body.normalize();
+  }
+
+  /* focus highlight: follows the pointer; click pins; Alt+ArrowUp/Down steps between blocks */
+  var current = null, pinned = false;
+  function blockOf(el) { var b = el && el.closest && el.closest(BLOCKS); return b && !b.closest(SKIP) ? b : null; }
+  function mark(b) {
+    if (current) current.classList.remove("er-focus");
+    current = b; if (b) b.classList.add("er-focus");
+  }
+  doc.addEventListener("mouseover", function (e) { if (s.focus && !pinned) mark(blockOf(e.target)); });
+  doc.addEventListener("click", function (e) {
+    if (!s.focus || e.target.closest(".er-ui")) return;
+    var b = blockOf(e.target); if (b) { pinned = !(pinned && b === current); mark(b); }
+  });
+  doc.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { panel.hidden = true; toggle.setAttribute("aria-expanded", "false"); }
+    if (!s.focus || !e.altKey || (e.key !== "ArrowDown" && e.key !== "ArrowUp")) return;
+    var all = Array.prototype.filter.call(doc.querySelectorAll(BLOCKS), function (b) { return !b.closest(SKIP) && b.textContent.trim(); });
+    var i = all.indexOf(current) + (e.key === "ArrowDown" ? 1 : -1);
+    if (all[i]) { e.preventDefault(); pinned = true; mark(all[i]);
+      all[i].scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" }); }
+  });
+
+  function apply() {
+    var c = root.classList;
+    c.toggle("er-font", !!s.font); root.style.setProperty("--er-font", FONT_STACK[s.font] || "inherit");
+    c.toggle("er-lh", s.lh > 0); root.style.setProperty("--er-lh", String(s.lh));
+    c.toggle("er-ls", s.ls > 0); root.style.setProperty("--er-ls", s.ls + "em");
+    var sv = SCHEME_VARS[s.scheme]; c.toggle("er-scheme", !!sv);
+    if (sv) { root.style.setProperty("--er-bg", sv[0]); root.style.setProperty("--er-fg", sv[1]); root.style.setProperty("--er-line", sv[2]); }
+    root.style.setProperty("--er-hl", s.hl);
+    var hasBionic = !!doc.querySelector(".er-bw");
+    if (s.bionic && !hasBionic) bionicOn(); else if (!s.bionic && hasBionic) bionicOff();
+    if (!s.focus) { pinned = false; mark(null); }
+    applySize();
+    save();
+  }
+
+  /* UI */
+  function el(tag, attrs, kids) {
+    var e = doc.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { if (k === "text") e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); });
+    (kids || []).forEach(function (k) { e.appendChild(k); });
+    return e;
+  }
+  function select(key, opts, label) {
+    var sel = el("select", { "data-k": key });
+    Object.keys(opts).forEach(function (v) { var o = el("option", { value: v, text: opts[v] }); if (s[key] === v) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener("change", function () { s[key] = sel.value; apply(); });
+    return el("label", {}, [doc.createTextNode(label), sel]);
+  }
+  function range(key, label, min, max, step) {
+    var inp = el("input", { type: "range", min: min, max: max, step: step, value: s[key], "data-k": key });
+    inp.addEventListener("input", function () { s[key] = parseFloat(inp.value); apply(); });
+    return el("label", {}, [doc.createTextNode(label), inp]);
+  }
+  function check(key, label) {
+    var inp = el("input", { type: "checkbox", "data-k": key }); inp.checked = !!s[key];
+    inp.addEventListener("change", function () { s[key] = inp.checked; apply(); });
+    return el("label", { class: "er-row" }, [doc.createTextNode(label), inp]);
+  }
+  var toggle = el("button", { id: "er-toggle", type: "button", class: "er-ui", "aria-expanded": "false",
+    "aria-controls": "er-panel", "aria-label": "Reading comfort settings", text: "Aa" });
+  var color = el("input", { type: "color", value: s.hl, "data-k": "hl", "aria-label": "Highlight colour" });
+  color.addEventListener("input", function () { s.hl = color.value; apply(); });
+  var reset = el("button", { type: "button", text: "Reset" });
+  reset.addEventListener("click", function () {
+    s = Object.assign({}, DEFAULTS); apply();
+    panel.querySelectorAll("[data-k]").forEach(function (i) {
+      var v = s[i.dataset.k]; if (i.type === "checkbox") i.checked = v; else i.value = v; });
+  });
+  var panel = el("div", { id: "er-panel", class: "er-ui", role: "dialog", "aria-label": "Reading comfort", hidden: "" }, [
+    select("font", FONTS, "Font"), range("size", "Text size", 0.9, 1.6, 0.05),
+    range("lh", "Line spacing (0 = page)", 0, 2.4, 0.1), range("ls", "Letter spacing", 0, 0.15, 0.01),
+    select("scheme", SCHEMES, "Colours"), check("bionic", "Bold word starts"),
+    check("focus", "Focus highlight (Alt+↑/↓)"), el("label", { class: "er-row" }, [doc.createTextNode("Highlight colour"), color]),
+    reset]);
+  toggle.addEventListener("click", function () {
+    panel.hidden = !panel.hidden; toggle.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+  function mount() { doc.body.appendChild(toggle); doc.body.appendChild(panel); apply(); }
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", mount); else mount();
+})();
+</script>
+</body></html>

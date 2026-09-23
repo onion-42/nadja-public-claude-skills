@@ -262,8 +262,8 @@ def _group_colors(nodes: list[dict]) -> dict[str, str]:
 
 
 # Mind-map page template (same "Warm study / paper" world). markmap (d3 + markmap-lib +
-# markmap-view) loads from the jsdelivr CDN at VIEW time: no npm at build (corp TLS
-# proxies choke on runtime `npx`), and holding the Markmap instance enables the toolbar.
+# markmap-view) loads from the jsdelivr CDN at VIEW time: no npm at build (restricted
+# networks often block runtime `npx`), and holding the Markmap instance enables the toolbar.
 MAP_TEMPLATE = Path(__file__).resolve().parent / "map_template.html"
 # Optional sibling skill: when installed next to this one, its reading-comfort panel is inlined.
 EASY_READ_JS = Path(__file__).resolve().parent.parent / "easy-read" / "easy-read.js"
