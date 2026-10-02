@@ -156,4 +156,6 @@ Other people's work in the same space (not included here):
 
 Working on the repo (human or agent): read [`AGENTS.md`](AGENTS.md). Changes are listed in
 [`CHANGELOG.md`](CHANGELOG.md). MIT licence ([`LICENSE`](LICENSE)); adopted skills that carry their
-own licence keep it.
+own licence keep it. Sources and licences of adopted skills:
+[`plugins/team/CREDITS.md`](plugins/team/CREDITS.md) and
+[`plugins/neurodivergent/CREDITS.md`](plugins/neurodivergent/CREDITS.md).

@@ -4,6 +4,10 @@ All notable changes to this marketplace. Versions follow the plugin manifests.
 
 ## Unreleased
 
+### Added
+- `plugins/team/CREDITS.md`: sources and verbatim licences of adopted skills (obra/superpowers,
+  everything-claude-code, Anthropic skill-creator); linked from the README.
+
 ### Changed
 - **`anki-mindmap` is split into two standalone skills**, so each can be installed alone:
   `anki-deck` (graph → `.apkg`, `build_deck.py`) and `mindmap` (graph → `.mindmap.html` + `.md`,
