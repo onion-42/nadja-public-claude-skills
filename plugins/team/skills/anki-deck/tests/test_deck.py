@@ -186,6 +186,14 @@ def test_nd_css_stacks_opendyslexic_then_extra_fonts():
     assert "font-style: italic" not in css
 
 
+def test_nd_css_falls_back_to_comic_sans_for_cyrillic():
+    # OpenDyslexic is Latin-only; Cyrillic glyphs go to an extra font if given, else Comic Sans
+    css = deck.anki_css("nd", ["_nd_font1.ttf"])
+    stack = css.split(".card, .q {")[1].split("font-family:")[1].split(";")[0]
+    assert stack.index('"ND OpenDyslexic"') < stack.index('"ND Font 1"')
+    assert stack.index('"ND Font 1"') < stack.index('"Comic Sans MS"') < stack.index("system-ui")
+
+
 def test_warm_css_is_unchanged_default():
     assert deck.anki_css("warm", []) == deck.ANKI_CSS
 

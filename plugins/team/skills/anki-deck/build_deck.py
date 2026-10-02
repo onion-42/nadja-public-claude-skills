@@ -34,7 +34,7 @@ MODEL_NAME_ND = "anki-deck ND"
 CVD_MODEL_OFFSET = {"off": 0, "red-green": 10, "blue-yellow": 20}
 FONTS_DIR = Path(__file__).resolve().parent / "fonts"
 # OpenDyslexic (SIL OFL 1.1, fonts/OFL.txt) is Latin-only: Cyrillic falls through to the
-# next font in the stack, e.g. one passed with --font-file.
+# next font in the stack: one passed with --font-file, else Comic Sans (system font).
 OPENDYSLEXIC = {400: FONTS_DIR / "OpenDyslexic-400.woff2", 700: FONTS_DIR / "OpenDyslexic-700.woff2"}
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"})
 
@@ -114,8 +114,9 @@ def anki_css(style: str, extra_fonts: list[str]) -> str:
              f'src: url("_nd_opendyslexic-{w}.woff2") format("woff2"); }}' for w in OPENDYSLEXIC]
     faces += [f'@font-face {{ font-family: "ND Font {i}"; src: url("{name}"); }}'
               for i, name in enumerate(extra_fonts, 1)]
+    # Cyrillic: an embedded --font-file if given, else Comic Sans where the OS has it (desktop).
     stack = ", ".join(['"ND OpenDyslexic"', *(f'"ND Font {i}"' for i in range(1, len(extra_fonts) + 1)),
-                       '"Segoe UI"', "system-ui", "sans-serif"])
+                       '"Comic Sans MS"', '"Comic Sans"', '"Segoe UI"', "system-ui", "sans-serif"])
     base = ANKI_CSS.replace(".evidence.ev-guess, .evidence.ev-unverified { font-style: italic; }\n", "")
     return "\n".join(faces) + base + ND_CSS.replace("__STACK__", stack)
 

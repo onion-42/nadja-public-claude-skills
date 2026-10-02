@@ -49,5 +49,18 @@ def test_storage_access_is_guarded():
     assert calls == guarded == 2
 
 
-def test_lexiad_is_local_only():
-    assert 'local("Lexiad")' in SRC and ".ttf" not in SRC
+def test_only_freely_shareable_fonts_are_offered():
+    # OpenDyslexic (SIL OFL) and system fonts only; no proprietary font names or files
+    assert "lexiad" not in SRC.lower() and "03a_test" not in SRC.lower()
+    assert ".ttf" not in SRC
+
+
+def test_opendyslexic_falls_back_to_comic_sans_for_cyrillic():
+    # OpenDyslexic has no Cyrillic: those glyphs fall through to Comic Sans (a system font)
+    stack = SRC.split("od: '")[1].split("'")[0]
+    assert stack.index('"ER OpenDyslexic"') < stack.index('"Comic Sans MS"') < stack.index("system-ui")
+
+
+def test_stale_saved_font_is_reset():
+    # a font removed from the menu (e.g. an old saved choice) must not leave the page unstyled
+    assert "if (!FONTS.hasOwnProperty(st.font)) st.font = \"\";" in SRC

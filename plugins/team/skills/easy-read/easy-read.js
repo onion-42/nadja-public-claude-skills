@@ -1,5 +1,5 @@
 /* easy-read: a reading-comfort panel for any HTML page. Vanilla JS, no dependencies.
- * Font (system / OpenDyslexic / Lexiad if installed), text size, line + letter spacing,
+ * Font (system / OpenDyslexic, Cyrillic via Comic Sans), text size, line + letter spacing,
  * calm colour schemes, colour-vision daltonisation (red-green / blue-yellow), bionic-style word
  * emphasis, and a focus highlight that follows the pointer or Alt+Arrow keys. Settings persist in
  * localStorage when it is available.
@@ -11,7 +11,7 @@
   window.__easyRead = true;
   var KEY = "easy-read", doc = document, root = doc.documentElement;
   var DEFAULTS = { font: "", size: 1, lh: 0, ls: 0, scheme: "", cvd: "", bionic: false, focus: false, hl: "#f2c14e" };
-  var FONTS = { "": "Page font", system: "System sans", od: "OpenDyslexic", lexiad: "Lexiad (if installed)" };
+  var FONTS = { "": "Page font", system: "System sans", od: "OpenDyslexic" };
   var SCHEMES = { "": "Page colours", cream: "Cream", grey: "Soft grey", dark: "Calm dark" };
   var CVD_OPTS = { "": "As designed", "red-green": "Red-green (protan / deutan)", "blue-yellow": "Blue-yellow (tritan)" };
   /* Daltonisation, I + E(I - S) in linear RGB: Machado et al. 2009 dichromacy simulation (S) plus
@@ -25,17 +25,22 @@
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var s = load();
 
-  function load() {
+  function readSaved() {
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || "{}")); }
     catch (e) { return Object.assign({}, DEFAULTS); }
+  }
+  function load() {
+    var st = readSaved();
+    if (!FONTS.hasOwnProperty(st.font)) st.font = "";
+    return st;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
 
   var css = doc.createElement("style");
   css.textContent = [
-    '@font-face{font-family:"ER OpenDyslexic";font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2) format("woff2")}',
-    '@font-face{font-family:"ER OpenDyslexic";font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2) format("woff2")}',
-    '@font-face{font-family:"ER Lexiad";src:local("Lexiad"),local("03A_test")}',
+    /* an installed OpenDyslexic wins (offline); otherwise the OFL web font */
+    '@font-face{font-family:"ER OpenDyslexic";font-display:swap;src:local("OpenDyslexic"),local("OpenDyslexic-Regular"),url(https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2) format("woff2")}',
+    '@font-face{font-family:"ER OpenDyslexic";font-weight:700;font-display:swap;src:local("OpenDyslexic Bold"),local("OpenDyslexic-Bold"),url(https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2) format("woff2")}',
     ".er-ui{--er-p:#fffdf8;--er-i:#2b2622;--er-s:#6b6259;--er-b:#e5dccb;--er-a:#b0603f;font:14px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--er-i)}",
     "@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .er-ui{--er-p:#2a2521;--er-i:#efe7db;--er-s:#b6ab9c;--er-b:#3d352d;--er-a:#e08a63}}",
     ":root[data-theme=dark] .er-ui{--er-p:#2a2521;--er-i:#efe7db;--er-s:#b6ab9c;--er-b:#3d352d;--er-a:#e08a63}",
@@ -61,7 +66,8 @@
   doc.head.appendChild(css);
 
   var FONT_STACK = { system: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
-    od: '"ER OpenDyslexic",system-ui,sans-serif', lexiad: '"ER Lexiad","Lexiad","03A_test",system-ui,sans-serif' };
+    /* OpenDyslexic is Latin-only: Cyrillic glyphs fall through to Comic Sans (Windows/macOS system font) */
+    od: '"ER OpenDyslexic","Comic Sans MS","Comic Sans",system-ui,sans-serif' };
   var SCHEME_VARS = { cream: ["#f8f1e3", "#2e2a24", "#e3d8c3"], grey: ["#e9eaec", "#26282b", "#cfd2d6"],
     dark: ["#1d1f22", "#e4e1da", "#3a3d42"] };
 

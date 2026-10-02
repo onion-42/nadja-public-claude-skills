@@ -5,6 +5,12 @@ All notable changes to this marketplace. Versions follow the plugin manifests.
 ## Unreleased
 
 ### Changed
+- `easy-read` 1.2.0: the Lexiad option is removed (only freely shareable fonts are offered).
+  OpenDyslexic now falls back to Comic Sans for Cyrillic and uses an installed OpenDyslexic before
+  the web font; a stale saved font choice resets to the page font.
+- `anki-deck` 3.1.0: `--style nd` cards fall back to Comic Sans for Cyrillic when no `--font-file`
+  is given.
+- Demo mind-map rebuilt with the current `mindmap` + `easy-read`.
 - **`anki-mindmap` is split into two standalone skills**, so each can be installed alone:
   `anki-deck` (graph → `.apkg`, `build_deck.py`) and `mindmap` (graph → `.mindmap.html` + `.md`,
   `build_map.py`). Each ships an identical `concept_graph.py` + `SCHEMA.md`; a parity test guards

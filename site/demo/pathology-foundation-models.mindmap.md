@@ -3,7 +3,7 @@ markmap:
   colorFreezeLevel: 2
   initialExpandLevel: 3
   maxWidth: 320
-  color: ["#b8683f", "#4f8a76", "#b07f22", "#6a82b0", "#a8628a", "#7c8f3e"]
+  color: ["#0072B2", "#D55E00", "#009E73", "#B5658F", "#B47A00", "#3A8FC4"]
 ---
 
 # pathology-foundation-models

@@ -10,7 +10,7 @@ description: >-
   "rebuild the deck with dyslexia-friendly cards", "колода для дальтоника", "перегенерируй колоду
   из json". For the mind-map of the same graph use `mindmap`.
 metadata:
-  version: "3.0.0"
+  version: "3.1.0"
   outputs: ".apkg (Anki), or a .tsv when genanki is missing"
   stack: "stdlib + optional genanki"
 ---
@@ -51,7 +51,8 @@ A live panel on every card is unreliable inside Anki, so the `easy-read` setting
 | easy-read setting | anki-deck |
 |---|---|
 | Font OpenDyslexic + line / letter spacing + calm colours | `--style nd` (fonts embedded, work on phones) |
-| A font with Cyrillic or other scripts | `--font-file path.ttf` (repeatable, after OpenDyslexic) |
+| Cyrillic | automatic: falls back to Comic Sans where the OS has it (desktop Anki), else system sans |
+| A specific font for Cyrillic or other scripts, also on phones | `--font-file path.ttf` (embedded; repeatable, after OpenDyslexic, before Comic Sans) — only a font whose licence allows sharing |
 | Bold word starts | `--bionic` (in `points`) |
 | Colour vision | `--cvd red-green` or `--cvd blue-yellow` (daltonises card colours **and images**) |
 | Text size | Anki's own zoom (View → Zoom; phone: Settings) |

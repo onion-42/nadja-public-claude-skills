@@ -2,7 +2,7 @@
 name: easy-read
 description: >
   Make any HTML page, report, artifact, mind-map or Anki deck neurodivergent- and colour-blind-
-  friendly with one reading-comfort layer: font choice (OpenDyslexic, Lexiad if installed, system),
+  friendly with one reading-comfort layer: font choice (OpenDyslexic with Comic Sans for Cyrillic, system),
   text size, line and letter spacing, calm colour schemes, colour vision (daltonisation for
   red-green or blue-yellow colour blindness), bold word starts, and a focus highlight that follows
   the pointer or Alt+Arrow keys. Use when someone asks for a document "with easy read",
@@ -11,7 +11,7 @@ description: >
   said they have dyslexia, ADHD or colour blindness. Vanilla JS, no dependencies, works offline
   except the OpenDyslexic web font.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # easy-read — one reading-comfort layer, three surfaces
@@ -37,7 +37,7 @@ off by default, so the page looks exactly as designed until the reader changes s
 
 | Setting | Panel (HTML, mind-map) | `anki-deck` flag |
 |---|---|---|
-| Font | page / system sans / OpenDyslexic (Latin only) / Lexiad (if installed, `local()` only) | `--style nd` (+ `--font-file` for Cyrillic) |
+| Font | page / system sans / OpenDyslexic (Latin; Cyrillic falls back to Comic Sans) | `--style nd` (same fallback; `--font-file` embeds another Cyrillic font) |
 | Text size | 0.9–1.6×, each block from its own size | Anki zoom |
 | Line + letter/word spacing | sliders | `--style nd` |
 | Colours | cream, soft grey, calm dark | `--style nd` calm palette; night mode |
@@ -63,8 +63,9 @@ smooth scrolling.
   reading speed or accuracy (e.g. Wery & Diliberto 2017; Kuster et al. 2018); the evidence on
   bionic-style reading is thin; daltonisation separates colours, it does not restore colour vision.
   Say "some readers find this more comfortable", never "helps you read faster".
-- Do not commit font files whose licence forbids redistribution. Lexiad is referenced by
-  `local()` only.
+- Fonts: only freely shareable ones. OpenDyslexic is SIL OFL 1.1 (an installed copy is used first,
+  else the web font). Comic Sans is a Windows/macOS system font: referenced by name only, never
+  bundled; where it is missing (Linux, phones) Cyrillic falls back to the system sans.
 
 ## Test
 `python -m pytest tests -q` from this skill's directory (syntax check via `node --check` when Node is
