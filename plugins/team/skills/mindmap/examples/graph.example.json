@@ -1,0 +1,37 @@
+[
+  {
+    "id": "bayes-theorem",
+    "title": "Bayes' theorem",
+    "group": "Concepts",
+    "kind": "concept",
+    "depends_on": [],
+    "has_code": false,
+    "summary": "Posterior is proportional to likelihood times prior.",
+    "card_front": "State Bayes' theorem in words.",
+    "card_back": "The posterior probability is proportional to the likelihood of the data times the prior probability of the hypothesis."
+  },
+  {
+    "id": "classifier",
+    "title": "Bayesian classifier",
+    "group": "Methods",
+    "kind": "method",
+    "depends_on": ["bayes-theorem"],
+    "has_code": true,
+    "anchors": ["src/model/classifier.py:12"],
+    "summary": "Assigns a class by computing the posterior over classes given features.",
+    "card_front": "How does the Bayesian classifier assign a class?",
+    "card_back": "It computes the posterior over classes given the features and picks the class with the highest posterior. Entry point: src/model/classifier.py:12."
+  },
+  {
+    "id": "pipeline",
+    "title": "Inference pipeline",
+    "group": "Architecture",
+    "kind": "method",
+    "depends_on": ["classifier"],
+    "has_code": true,
+    "anchors": ["src/pipeline.py:40"],
+    "summary": "Loads features, runs the classifier, writes predictions.",
+    "card_front": "What are the three stages of the inference pipeline?",
+    "card_back": "Load features, run the Bayesian classifier, write predictions. Entry point: src/pipeline.py:40."
+  }
+]

@@ -30,7 +30,7 @@ tests/eval-results/                 written eval reports only
    name) and a `description` that says when to use it, with concrete trigger phrases.
 4. **Helper paths are relative to the skill directory**, so a skill works both as a plugin and
    when copied into `~/.claude/skills/`.
-5. **Honesty in study artifacts.** `anki-mindmap` graphs cite only what was opened, with an
+5. **Honesty in study artifacts.** Concept graphs (`anki-deck`, `mindmap`) cite only what was opened, with an
    evidence level; never invent DOIs, sections or numbers.
 6. **Neurodivergent plugin tone.** Offer comfort and choice; do not claim clinical or performance
    effects. Credit adapted material in `plugins/neurodivergent/CREDITS.md`.

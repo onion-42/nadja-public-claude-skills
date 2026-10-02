@@ -17,9 +17,25 @@ def test_widget_is_valid_javascript():
 
 
 @pytest.mark.parametrize("control", ['"font"', '"size"', '"lh"', '"ls"', '"scheme"', '"bionic"',
-                                     '"focus"', '"hl"'])
+                                     '"focus"', '"hl"', '"cvd"'])
 def test_every_setting_has_a_control(control):
     assert control in SRC
+
+
+def test_colour_vision_offers_both_daltonisation_modes():
+    assert '"red-green"' in SRC and '"blue-yellow"' in SRC
+    assert "feColorMatrix" in SRC and 'color-interpolation-filters' in SRC
+
+
+def test_colour_vision_filters_the_root_element():
+    # on <html>: the root is the only element whose filter does not re-anchor position:fixed
+    # descendants (sticky headers, modals, the panel itself)
+    assert "html.er-cvd{filter:url(#er-cvd)}" in SRC
+    assert "body > :not(.er-ui){filter" not in SRC
+
+
+def test_colour_vision_is_off_by_default():
+    assert 'cvd: ""' in SRC.split("var DEFAULTS")[1].split(";")[0]
 
 
 def test_widget_never_edits_svg_text():

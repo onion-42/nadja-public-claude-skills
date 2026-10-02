@@ -1,7 +1,8 @@
 /* easy-read: a reading-comfort panel for any HTML page. Vanilla JS, no dependencies.
  * Font (system / OpenDyslexic / Lexiad if installed), text size, line + letter spacing,
- * calm colour schemes, bionic-style word emphasis, and a focus highlight that follows the
- * pointer or Alt+Arrow keys. Settings persist in localStorage when it is available.
+ * calm colour schemes, colour-vision daltonisation (red-green / blue-yellow), bionic-style word
+ * emphasis, and a focus highlight that follows the pointer or Alt+Arrow keys. Settings persist in
+ * localStorage when it is available.
  * It never touches text inside <svg> (charts, mind-maps keep their layout).
  * Comfort and choice, not a treatment: see README for the evidence note. MIT. */
 (function () {
@@ -9,9 +10,16 @@
   if (window.__easyRead) return;
   window.__easyRead = true;
   var KEY = "easy-read", doc = document, root = doc.documentElement;
-  var DEFAULTS = { font: "", size: 1, lh: 0, ls: 0, scheme: "", bionic: false, focus: false, hl: "#f2c14e" };
+  var DEFAULTS = { font: "", size: 1, lh: 0, ls: 0, scheme: "", cvd: "", bionic: false, focus: false, hl: "#f2c14e" };
   var FONTS = { "": "Page font", system: "System sans", od: "OpenDyslexic", lexiad: "Lexiad (if installed)" };
   var SCHEMES = { "": "Page colours", cream: "Cream", grey: "Soft grey", dark: "Calm dark" };
+  var CVD_OPTS = { "": "As designed", "red-green": "Red-green (protan / deutan)", "blue-yellow": "Blue-yellow (tritan)" };
+  /* Daltonisation, I + E(I - S) in linear RGB: Machado et al. 2009 dichromacy simulation (S) plus
+   * Fidaner et al. 2005 error shift (E). Same values as the anki-deck skill (its parity test). */
+  var CVD = {
+    "red-green": "1 0 0 0 0 0.163 0.725 0.112 0 0 0.455 -0.645 1.191 0 0 0 0 0 1 0",
+    "blue-yellow": "0.741 -0.407 0.666 0 0 0.075 0.585 0.34 0 0 0 0 1 0 0 0 0 0 1 0"
+  };
   var SKIP = "svg, script, style, code, pre, kbd, samp, textarea, input, select, .er-ui";
   var BLOCKS = "p, li, h1, h2, h3, h4, h5, h6, dd, dt, td, th, blockquote, figcaption, .er-block";
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -44,6 +52,9 @@
     "html.er-ls body :not(" + SKIP + "):not(svg *){letter-spacing:var(--er-ls)!important;word-spacing:calc(var(--er-ls) * 2)!important}",
     "html.er-scheme body{background:var(--er-bg)!important;color:var(--er-fg)!important}",
     "html.er-scheme body :not(" + SKIP + "):not(svg *){color:inherit!important;background-color:transparent!important;border-color:var(--er-line)!important}",
+    /* on the root element: it is the only one whose filter does not re-anchor position:fixed
+     * descendants (sticky headers, modals, this panel); the panel's neutral colours barely move */
+    "html.er-cvd{filter:url(#er-cvd)}",
     ".er-b{font-weight:700}",
     ".er-focus{background:color-mix(in srgb,var(--er-hl) 32%,transparent)!important;border-radius:4px;box-shadow:0 0 0 3px color-mix(in srgb,var(--er-hl) 32%,transparent)}"
   ].join("\n");
@@ -53,6 +64,17 @@
     od: '"ER OpenDyslexic",system-ui,sans-serif', lexiad: '"ER Lexiad","Lexiad","03A_test",system-ui,sans-serif' };
   var SCHEME_VARS = { cream: ["#f8f1e3", "#2e2a24", "#e3d8c3"], grey: ["#e9eaec", "#26282b", "#cfd2d6"],
     dark: ["#1d1f22", "#e4e1da", "#3a3d42"] };
+
+  /* colour vision: one SVG filter whose matrix is swapped per mode */
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var defs = doc.createElementNS(SVG_NS, "svg"), cvdFilter = doc.createElementNS(SVG_NS, "filter"),
+    cvdMatrix = doc.createElementNS(SVG_NS, "feColorMatrix");
+  defs.setAttribute("class", "er-ui er-defs"); defs.setAttribute("aria-hidden", "true");
+  defs.setAttribute("width", "0"); defs.setAttribute("height", "0");
+  defs.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden");
+  cvdFilter.setAttribute("id", "er-cvd"); cvdFilter.setAttribute("color-interpolation-filters", "linearRGB");
+  cvdMatrix.setAttribute("type", "matrix");
+  cvdFilter.appendChild(cvdMatrix); defs.appendChild(cvdFilter);
 
   /* text size: scale each text block from its own original size (no compounding) */
   function textBlocks() {
@@ -125,6 +147,8 @@
     var sv = SCHEME_VARS[s.scheme]; c.toggle("er-scheme", !!sv);
     if (sv) { root.style.setProperty("--er-bg", sv[0]); root.style.setProperty("--er-fg", sv[1]); root.style.setProperty("--er-line", sv[2]); }
     root.style.setProperty("--er-hl", s.hl);
+    var m = CVD[s.cvd]; c.toggle("er-cvd", !!m);
+    if (m) cvdMatrix.setAttribute("values", m);
     var hasBionic = !!doc.querySelector(".er-bw");
     if (s.bionic && !hasBionic) bionicOn(); else if (!s.bionic && hasBionic) bionicOff();
     if (!s.focus) { pinned = false; mark(null); }
@@ -168,12 +192,13 @@
   var panel = el("div", { id: "er-panel", class: "er-ui", role: "dialog", "aria-label": "Reading comfort", hidden: "" }, [
     select("font", FONTS, "Font"), range("size", "Text size", 0.9, 1.6, 0.05),
     range("lh", "Line spacing (0 = page)", 0, 2.4, 0.1), range("ls", "Letter spacing", 0, 0.15, 0.01),
-    select("scheme", SCHEMES, "Colours"), check("bionic", "Bold word starts"),
+    select("scheme", SCHEMES, "Colours"), select("cvd", CVD_OPTS, "Colour vision"),
+    check("bionic", "Bold word starts"),
     check("focus", "Focus highlight (Alt+↑/↓)"), el("label", { class: "er-row" }, [doc.createTextNode("Highlight colour"), color]),
     reset]);
   toggle.addEventListener("click", function () {
     panel.hidden = !panel.hidden; toggle.setAttribute("aria-expanded", String(!panel.hidden));
   });
-  function mount() { doc.body.appendChild(toggle); doc.body.appendChild(panel); apply(); }
+  function mount() { doc.body.appendChild(defs); doc.body.appendChild(toggle); doc.body.appendChild(panel); apply(); }
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", mount); else mount();
 })();

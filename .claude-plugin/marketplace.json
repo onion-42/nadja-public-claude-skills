@@ -11,7 +11,7 @@
     {
       "name": "team",
       "source": "./plugins/team",
-      "description": "Engineering and research workflow skills (planning, debugging, review, research with citations, Anki decks and mind-maps, easy-read) and four subagents."
+      "description": "Engineering and research workflow skills (planning, debugging, review, research with citations, Anki decks and mind-maps, easy-read with colour-blind modes) and four subagents."
     },
     {
       "name": "neurodivergent",

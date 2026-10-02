@@ -112,7 +112,7 @@ const ROOT_COLOR = "__ROOT_COLOR__";
   const { Transformer, Markmap, deriveOptions } = window.markmap;
   const { root: data, frontmatter } = new Transformer().transform(MD);
   const walk = (n, depth, f) => { f(n, depth); (n.children || []).forEach(c => walk(c, depth + 1, f)); };
-  // Tag each tree node with its graph id by position: build.py emitted the outline in this
+  // Tag each tree node with its graph id by position: build_map.py emitted the outline in this
   // same depth-first order, so there is no fragile matching against rendered label text.
   let i = 0;
   walk(data, 0, (n) => { n.payload = Object.assign({}, n.payload, { nid: ORDER[i++] }); });

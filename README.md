@@ -1,6 +1,6 @@
 # team-claude-skills
 
-> **TL;DR.** Two Claude Code plugins in one marketplace. `team` has 30 workflow skills and 4 agents
+> **TL;DR.** Two Claude Code plugins in one marketplace. `team` has 31 workflow skills and 4 agents
 > that help you spend tokens well and finish tasks without starting new ones. `neurodivergent` is an
 > opt-in set of comfort tools for ADHD, autistic and dyslexic users. Install:
 > `/plugin marketplace add onion-42/nadja-public-claude-skills`, then `/plugin install team@team-claude-skills`.
@@ -51,13 +51,16 @@ install commands and a live demo deck: a study deck on self-supervised pathology
 - `research-cite`, `find-docs`
 
 **Study artifacts & reading comfort**
-- `anki-mindmap` — the core renderer: one concept graph → an Anki deck (.apkg) + an
-  interactive mind-map; reached through two wrappers:
-  - `repo-anki-mindmap` — build the graph from a code repository
-  - `research-anki-mindmap` — build the graph from papers, notes or a topic
-  - cards teach one term each in simple words; `--style nd` makes ADHD/dyslexia/autism-friendly
-    cards (OpenDyslexic embedded, wide spacing, optional bionic points)
-- `easy-read` — a reading-comfort panel (fonts, spacing, calm colours) for any HTML page
+- One concept graph, two standalone renderers (install either or both):
+  - `anki-deck` — the graph → an Anki deck (.apkg); cards teach one term each in simple words;
+    `--style nd` (OpenDyslexic embedded, wide spacing), `--bionic`, `--cvd` (colour-blind mode)
+  - `mindmap` — the graph → an interactive mind-map (.html + .md) with colour-blind-safe branches
+- Two wrappers build the graph and ask "deck, map or both":
+  - `repo-anki-mindmap` — from a code repository
+  - `research-anki-mindmap` — from papers, notes or a topic
+- `easy-read` — one reading-comfort layer for any HTML page, the mind-map and (as build flags) the
+  Anki cards: fonts, spacing, calm colours, **colour vision** (red-green / blue-yellow), bold word
+  starts, focus highlight
 
 **Evaluation & debate**
 - `rag-eval` — evaluate a RAG system with Ragas (faithfulness, retrieval quality)
@@ -107,7 +110,7 @@ cp -r plugins/team/skills/<name>  ~/.claude/skills/
 cp    plugins/team/agents/<name>.md  ~/.claude/agents/
 ```
 
-Some skills ship a helper script (`agent_bus.py`, `build.py`, `eval_rag.py`); it sits in the
+Some skills ship a helper script (`agent_bus.py`, `build_deck.py`, `build_map.py`, `eval_rag.py`); it sits in the
 skill's own directory, wherever the skill is installed. Python skills that need a library say so in their SKILL.md
 (`genanki`, `markmap`, `ragas`, `boto3`); install only what you use.
 
@@ -122,7 +125,7 @@ skill's own directory, wherever the skill is installed. Python skills that need 
 
 ## ⟐ Testing
 
-The net-new and modified skills (`anki-mindmap` and its two wrappers, `rag-eval`, `brainstorm`,
+The net-new and modified skills (`anki-deck`, `mindmap` and their two wrappers, `rag-eval`, `brainstorm`,
 `agent-bus`, `model-route`, and the `test-runner` agent) are exercised with
 `testing-skills-with-subagents`; see [`tests/eval-results/`](tests/eval-results/). Unit tests:
 `python -m pytest plugins/team/skills -q`. Adopted skills carry their upstream tests

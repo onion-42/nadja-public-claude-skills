@@ -8,21 +8,23 @@ description: >-
   по репо", "майндмэп по коду". Not for a one-off walkthrough: use it when the output is durable
   study material someone will keep reusing. For papers, notes or a topic use `research-anki-mindmap`.
 metadata:
-  version: "2.0.0"
-  requires: "anki-mindmap (core renderer)"
+  version: "3.0.0"
+  requires: "anki-deck (cards) and/or mindmap (map); easy-read optional"
 ---
 
 # repo-anki-mindmap (wrapper: code → concept graph)
 
-This skill does **Stage 0 for code**: read the repo and build the concept graph. The rendering,
-schema, design and guardrails live in the core skill **`anki-mindmap`**; read its SKILL.md for the
-node schema before writing the graph.
+This skill does **Stage 0 for code**: read the repo and build the concept graph. Rendering lives in
+two standalone skills: **`anki-deck`** (cards) and **`mindmap`** (map). The node schema and
+guardrails are in `SCHEMA.md` inside either of them; read it before writing the graph.
 
-## Gate 1 — scope + audience (ask if missing)
+## Gate 1 — scope, audience, output (ask if missing)
 
 One line: which repo/subsystem, and who the learner is (e.g. *"a new hire fluent in Python, new to
 our embedding pipeline"*). The audience caps how deep the graph goes: stop recursing into concepts
-the learner already knows. No scope → ask one multiple-choice question.
+the learner already knows. Also ask **what to render: deck, map, or both** (default both), and
+whether the reader wants reading comfort (dyslexia-friendly cards, colour-blind mode). Missing →
+one multiple-choice question.
 
 ## Stage 0 — build the graph from code
 
@@ -34,19 +36,23 @@ the learner already knows. No scope → ask one multiple-choice question.
 3. Pin the commit: pass `--source "<repo>@<short-sha>"`, so the anchors stay meaningful.
 4. `evidence` is usually unnecessary for code (the anchor is the evidence). Use `unverified` for a
    claim about behaviour you inferred but did not run or trace.
-5. **Cards teach terms in simple words** (core SKILL.md, "Writing cards"): front = the term
+5. **Cards teach terms in simple words** (`anki-deck` SKILL.md, "Writing cards"): front = the term
    (a module, class or idea), `answer` = one plain sentence of what it does, `points` ≤ 3 short
    facts (where it lives, what calls it). Details go in `summary`.
 6. Write the graph to `_ram_graph.json`.
 
 ## Gate 2 — approve the node list, then render
 
-Show node titles + groups; let the user prune/add. Then render with the core:
+Show node titles + groups; let the user prune/add. Then render what Gate 1 asked for:
 
 ```bash
-python <skills-dir>/anki-mindmap/build.py _ram_graph.json --deck-name "Repo: <name>" \
-  --out-dir ./study --source "<repo>@<sha>"   # add --style nd [--bionic] if asked
+# deck   (add --style nd [--bionic] [--cvd red-green|blue-yellow] if asked)
+python <skills-dir>/anki-deck/build_deck.py _ram_graph.json --deck-name "Repo: <name>" --out-dir ./study
+# map    (easy-read panel is inlined automatically when that skill is installed)
+python <skills-dir>/mindmap/build_map.py _ram_graph.json --title "Repo: <name>" \
+  --out-dir ./study --source "<repo>@<sha>"
 ```
 
 Report the card count, how to import the `.apkg` (Anki, File, Import), and that the map needs the CDN
-on first open (the `.md` is the fallback).
+on first open (the `.md` is the fallback). A renderer skill that is not installed → say which one to
+install instead of failing silently.
