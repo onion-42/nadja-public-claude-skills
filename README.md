@@ -1,6 +1,6 @@
 # team-claude-skills
 
-> **TL;DR.** Two Claude Code plugins in one marketplace. `team` has 31 workflow skills and 4 agents
+> **TL;DR.** Two Claude Code plugins in one marketplace. `team` has 32 workflow skills and 4 agents
 > that help you spend tokens well and finish tasks without starting new ones. `neurodivergent` is an
 > opt-in set of comfort tools for ADHD, autistic and dyslexic users. Install:
 > `/plugin marketplace add onion-42/nadja-public-claude-skills`, then `/plugin install team@team-claude-skills`.
@@ -61,6 +61,9 @@ install commands and a live demo deck: a study deck on self-supervised pathology
 - `easy-read` — one reading-comfort layer for any HTML page, the mind-map and (as build flags) the
   Anki cards: fonts, spacing, calm colours, **colour vision** (red-green / blue-yellow), bold word
   starts, focus highlight
+- `toefl-coach` — timed TOEFL iBT drills in the 2026 format (Writing and Speaking first), scored
+  0–5 against the ETS rubrics; spoken prompts and an on-screen countdown on Windows
+  ([field report](#field-report-toefl-coach))
 
 **Evaluation & debate**
 - `rag-eval` — evaluate a RAG system with Ragas (faithfulness, retrieval quality)
@@ -69,6 +72,27 @@ install commands and a live demo deck: a study deck on self-supervised pathology
 **Subagents** (`plugins/team/agents/`)
 - `test-runner` (failures-only, token-frugal), `code-reviewer`, `security-reviewer`,
   `external-researcher`
+
+### Field report: toefl-coach
+
+I wrote `toefl-coach` for my own TOEFL iBT in the 2026 format and drilled with it in the days before
+the test (October 2026). Result: **118 / 120, band 6.0 / 6, CEFR C2**: Reading 5.5, Listening 6.0,
+Speaking 6.0, Writing 5.5.
+
+What helped:
+
+- **Pacing.** My first Academic Discussion drill took 14:13 for a 10-minute task (222 words where about
+  120 are enough). After I added the always-on-top countdown and the four-part template, the next one
+  took 10:11. That is the one measured change in my progress log.
+- **The new format.** My prep book was printed before 2026. The task bank uses the 2026 task types
+  (Build a Sentence, Email, Academic Discussion, Listen and Repeat, Interview), so no task on test day
+  surprised me.
+- **Short feedback.** Two strengths, two fixes and one model sentence after each drill. I could act on
+  that in the next drill; a full list of every error would have been too much to use.
+
+Honest limits: one learner, four logged drills, no control group. My English was already strong
+before I started, and the coach cannot hear pronunciation. Read this as "the skill did its job for
+me", not as evidence that it raises scores.
 
 ## ⟐ The `neurodivergent` plugin
 

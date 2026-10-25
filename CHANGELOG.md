@@ -20,6 +20,9 @@ All notable changes to this marketplace. Versions follow the plugin manifests.
 - `easy-read` becomes one reading-comfort layer for three surfaces (HTML, mind-map, Anki flags).
 
 ### Added
+- `toefl-coach` 1.2.0 (team): timed TOEFL iBT drills in the 2026 format, an original task bank,
+  paraphrased ETS rubrics, `say.ps1` (spoken prompts) and `timer.ps1` (countdown window with the
+  template step). Progress file path from `$TOEFL_PROGRESS_FILE`. README gets a field report.
 - `easy-read`: **Colour vision** setting — red-green / blue-yellow daltonisation (Machado 2009 +
   Fidaner 2005, one SVG `feColorMatrix`) over the page, charts, images and mind-map, panel excluded.
 - `anki-deck --cvd red-green|blue-yellow`: the same daltonisation baked into the cards (own note
